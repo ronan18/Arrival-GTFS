@@ -10,6 +10,8 @@ import GTFS
 
 public struct GTFSDB: Codable, Hashable {
     
+    public var dbVID: String
+    
     public var stations: StationsDB
     public var routes: RoutesDB
     public var trips: TripsDB
@@ -45,6 +47,7 @@ public struct GTFSDB: Codable, Hashable {
         self.trips = trips
         self.routes = .init(from: gtfs.routes, trips: trips, stations: stations)
         
+        self.dbVID = UUID().uuidString
        
     
     }
@@ -69,7 +72,47 @@ public struct StationsDB: Codable, Hashable, Equatable {
         
     }
 }
+public extension Date {
+    init(bartTime: String) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = .init(abbreviation: "PST")
+        dateFormatter.dateFormat = "HH:mm:ss"
+       var nextDay = false
+        var updatedBartString = bartTime
+        
+        var hourInt = Int(bartTime.prefix(2))!
+        if hourInt > 23 {
+            hourInt = hourInt - 24
+            nextDay = true
+            updatedBartString = String(updatedBartString.dropFirst(2))
+            updatedBartString = "0\(hourInt)" + updatedBartString
+        }
+        
+        
+        var date = dateFormatter.date(from: updatedBartString)
+        if  date == nil {
+            date = Date()
+           // print("ERROR DATE", bartTime)
+        }
+        
+       
+        let components = Calendar.current.dateComponents([.hour, .minute], from: date!)
+        let hour = components.hour!
+        let minute = components.minute!
 
+        var currentDate = Date.now
+        if (nextDay) {
+            currentDate = currentDate + 60*60*24
+           // print("next day for \(bartTime) \(updatedBartString)")
+        }
+        // get today and apply saved hour & minute
+        var newComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: currentDate)
+        newComponents.hour = hour
+        newComponents.minute = minute
+        let newDate = Calendar.current.date(from: newComponents)!
+        self = newDate
+    }
+}
 public struct StopTimesDB: Codable, Hashable, Equatable {
     public let all: [StopTime]
     public let byStopTimeID: [String: StopTime]
@@ -90,9 +133,20 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
             currentByTripID.append(stopTime)
             byTripID[stopTime.tripId] = currentByTripID
         })
+        
+        byStopID.keys.forEach {key in
+            byStopID[key] = byStopID[key]?.sorted(by: { a, b in
+                a.arrivalTime < b.arrivalTime
+            })
+        }
         self.byStopTimeID = byStopTimeID
         self.byStopID = byStopID
         
+        byTripID.keys.forEach {key in
+            byTripID[key] = byTripID[key]?.sorted(by: { a, b in
+                a.stopSequence < b.stopSequence
+            })
+        }
         self.byTripID = byTripID
         
     

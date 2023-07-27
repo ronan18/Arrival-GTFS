@@ -69,7 +69,7 @@ public struct Agency: Codable, FromCSVLine, Equatable, Hashable {
 public struct Stop: Codable, FromCSVLine, Equatable, Hashable {
     public let stopId: String
     public let stopCode: String?
-    public let stopName: String?
+    public let stopName: String
     public let stopDesc: String?
     public let stopLat: Double?
     public let stopLon: Double?
@@ -85,7 +85,7 @@ public struct Stop: Codable, FromCSVLine, Equatable, Hashable {
     public init(line: CSVLine) {
         stopId = line["stop_id"]!
         stopCode = line["stop_code"]
-        stopName = line["stop_name"]
+        stopName = line["stop_name"] ?? line["stop_id"]!
         stopDesc = line["stop_desc"]
         stopLat = Double.from(line["stop_lat"])
         stopLon = Double.from(line["stop_lon"])
@@ -260,8 +260,8 @@ public enum BikesAllowed: Int, Codable, Equatable, Hashable {
 
 public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
     public let tripId: String
-    public let arrivalTime: String?
-    public let departureTime: String?
+    public let arrivalTime: Date
+    public let departureTime: Date
     public let stopId: String
     public let stopSequence: Int
     public let stopHeadsign: String?
@@ -272,8 +272,8 @@ public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
 
     public init(line: CSVLine) {
         tripId = line["trip_id"]!
-        arrivalTime = line["arrival_time"]
-        departureTime = line["departure_time"]
+        arrivalTime = Date(bartTime: line["arrival_time"]!)
+        departureTime = Date(bartTime:line["departure_time"]!)
         stopId = line["stop_id"]!
         stopSequence = Int(line["stop_sequence"]!)!
         stopHeadsign = line["stop_headsign"]

@@ -32,47 +32,13 @@ class Arrival_GTFSTests: XCTestCase {
         // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
     }
     func testReadPrebuiltData() throws {
-        XCTAssertNoThrow(try ArrivalGTFS().readPrebuilt())
+        XCTAssertNoThrow(try agtfs.readPrebuilt())
     }
-    func testRoutesByStopID() throws {
-        self.agtfs.stations.forEach({stop in
-            print("routes for \(stop.stopName ?? stop.stopId) starting")
-            let res = (agtfs.routeIDsByStopID[stop.stopId] ?? [])
-            print("Routes for \(stop.stopName ?? "ERROR") \(res.count)")
-            print("res")
-            XCTAssertFalse(res.isEmpty)
-        })
-    }
-    func testGetRoutesForStop() throws {
-       let testStop = agtfs.stations.randomElement()!
-        print("Routes for \(testStop.stopName ?? "ERROR") starting")
-        let res = agtfs.routeIDs(for: testStop)
-        print("Routes for \(testStop.stopName ?? "ERROR") \(res.count)")
+
+    func testTrainsForStop() throws {
+        let res = agtfs.trains(for: agtfs.db.stations.byStopID["EMBR"]!)
         XCTAssertFalse(res.isEmpty)
-        
     }
-    func testGetTripsForStop() throws {
-       
-        let res = agtfs.tripIDs(for: agtfs.stations.randomElement()!)
-        
-        XCTAssertFalse(res.isEmpty)
-        
-    }
-    func testGetStopTimesForStop() throws {
-       
-        let res = agtfs.stopTimes(for: agtfs.stations.randomElement()!)
-        
-        XCTAssertFalse(res.isEmpty)
-        
-    }
-    
-    func testStopTimesByStopID() throws {
-        self.agtfs.stations.forEach({stop in
-            XCTAssertFalse((agtfs.stopTimesByStopID[stop.stopId] ?? []).isEmpty)
-        })
-    }
-    
-    
     
     func testGTFSBuildSpeed() {
        
@@ -84,43 +50,6 @@ class Arrival_GTFSTests: XCTestCase {
         
         self.measure {
             try? agtfs.readPrebuilt()
-        }
-    }
-    func testRoutesForStopSpeed() {
-        
-        self.measure {
-            let _ = agtfs.routeIDs(for: agtfs.gtfs.stops.first(where: {stop in
-                stop.stopId == "EMBR"
-            })!)
-        }
-        
-    }
-    func testTripsForStopSpeed() {
-        
-        self.measure {
-            let _ = agtfs.tripIDs(for: agtfs.gtfs.stops.first(where: {stop in
-                stop.stopId == "EMBR"
-            })!)
-        }
-        
-    }
-    func testStopTimesForStopSpeed() {
-        
-        self.measure {
-            let _ = agtfs.stopTimes(for: agtfs.gtfs.stops.first(where: {stop in
-                stop.stopId == "EMBR"
-            })!)
-        }
-        
-    }
-    func testArrivalGTFSIntSpeed() {
-        self.measure {
-            let _ = ArrivalGTFS()
-        }
-    }
-    func testComputedSpeed() {
-        self.measure {
-            agtfs.computeComputed()
         }
     }
 

@@ -15,12 +15,35 @@ class Arrival_GTFSDBTests: XCTestCase {
     var db: GTFSDB?
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        do {
-            let data = try Data(contentsOf: cachePath)
-            self.gtfs = try JSONDecoder().decode(GTFS.self, from: data)
-            self.db = GTFSDB(from: gtfs!)
-        } catch {
-            
+       /* if self.gtfs == nil || self.db == nil{
+            do {
+                let data = try Data(contentsOf: cachePath)
+                self.gtfs = try JSONDecoder().decode(GTFS.self, from: data)
+                self.db = GTFSDB(from: gtfs!)
+            } catch {
+                print("error generating GTFS from date")
+            }
+        }*/
+        
+        if self.gtfs == nil || self.db == nil{
+            do {
+                self.gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/google_transit_20230213-20230813_v7")
+                //print("built gtfs", gtfs, gtfs.routes)
+                
+                let data = try JSONEncoder().encode(gtfs)
+                
+                do {
+                    try data.write(to: cachePath)
+                    print("cached gtfs data files as json")
+                }
+                catch {
+                    print("Failed to write JSON data: \(error.localizedDescription)")
+                }
+                self.db = .init(from: gtfs!)
+            } catch {
+                // print("error", error)
+                throw ArrivalGTFSError.failedToBuild
+            }
         }
         
     }
