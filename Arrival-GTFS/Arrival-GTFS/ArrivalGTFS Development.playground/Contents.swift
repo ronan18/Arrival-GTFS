@@ -6,4 +6,7 @@ var greeting = "Hello, playground"
 //ArrivalGTFS.gftsURL
 let agtfs = ArrivalGTFS()
 
-try? agtfs.build()
+let routes = agtfs.routesByStopID["ROCK"] ?? []
+
+print(routes.count)
+print(routes)

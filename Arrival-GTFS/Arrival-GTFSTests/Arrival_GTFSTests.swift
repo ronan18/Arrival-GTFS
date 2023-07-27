@@ -9,9 +9,13 @@ import XCTest
 @testable import Arrival_GTFS
 
 class Arrival_GTFSTests: XCTestCase {
-    
+    let agtfs = ArrivalGTFS()
+   
+
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
+      
+        
     }
     
     override func tearDownWithError() throws {
@@ -30,39 +34,94 @@ class Arrival_GTFSTests: XCTestCase {
     func testReadPrebuiltData() throws {
         XCTAssertNoThrow(try ArrivalGTFS().readPrebuilt())
     }
-    
+    func testRoutesByStopID() throws {
+        self.agtfs.stations.forEach({stop in
+            print("routes for \(stop.stopName ?? stop.stopId) starting")
+            let res = (agtfs.routeIDsByStopID[stop.stopId] ?? [])
+            print("Routes for \(stop.stopName ?? "ERROR") \(res.count)")
+            print("res")
+            XCTAssertFalse(res.isEmpty)
+        })
+    }
     func testGetRoutesForStop() throws {
-        let agtfs = ArrivalGTFS()
-        let res = agtfs.routes(for: agtfs.gtfs.stops.randomElement()!)
+       let testStop = agtfs.stations.randomElement()!
+        print("Routes for \(testStop.stopName ?? "ERROR") starting")
+        let res = agtfs.routeIDs(for: testStop)
+        print("Routes for \(testStop.stopName ?? "ERROR") \(res.count)")
+        XCTAssertFalse(res.isEmpty)
+        
+    }
+    func testGetTripsForStop() throws {
+       
+        let res = agtfs.tripIDs(for: agtfs.stations.randomElement()!)
+        
+        XCTAssertFalse(res.isEmpty)
+        
+    }
+    func testGetStopTimesForStop() throws {
+       
+        let res = agtfs.stopTimes(for: agtfs.stations.randomElement()!)
         
         XCTAssertFalse(res.isEmpty)
         
     }
     
+    func testStopTimesByStopID() throws {
+        self.agtfs.stations.forEach({stop in
+            XCTAssertFalse((agtfs.stopTimesByStopID[stop.stopId] ?? []).isEmpty)
+        })
+    }
     
     
     
     func testGTFSBuildSpeed() {
-        let agtfs = ArrivalGTFS()
+       
         self.measure {
             try? agtfs.build()
         }
     }
     func testGTFSReadSpeed() {
-        let agtfs = ArrivalGTFS()
+        
         self.measure {
             try? agtfs.readPrebuilt()
         }
     }
     func testRoutesForStopSpeed() {
-        let agtfs = ArrivalGTFS()
+        
         self.measure {
-            let _ = agtfs.routes(for: agtfs.gtfs.stops.first(where: {stop in
+            let _ = agtfs.routeIDs(for: agtfs.gtfs.stops.first(where: {stop in
                 stop.stopId == "EMBR"
             })!)
         }
         
     }
-  
+    func testTripsForStopSpeed() {
+        
+        self.measure {
+            let _ = agtfs.tripIDs(for: agtfs.gtfs.stops.first(where: {stop in
+                stop.stopId == "EMBR"
+            })!)
+        }
+        
+    }
+    func testStopTimesForStopSpeed() {
+        
+        self.measure {
+            let _ = agtfs.stopTimes(for: agtfs.gtfs.stops.first(where: {stop in
+                stop.stopId == "EMBR"
+            })!)
+        }
+        
+    }
+    func testArrivalGTFSIntSpeed() {
+        self.measure {
+            let _ = ArrivalGTFS()
+        }
+    }
+    func testComputedSpeed() {
+        self.measure {
+            agtfs.computeComputed()
+        }
+    }
 
 }

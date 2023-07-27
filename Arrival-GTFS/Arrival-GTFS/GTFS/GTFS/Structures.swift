@@ -44,7 +44,7 @@ protocol FromCSVLine {
     init(line: CSVLine)
 }
 
-public struct Agency: Codable, FromCSVLine {
+public struct Agency: Codable, FromCSVLine, Equatable, Hashable {
     public let agencyId: String?
     public let agencyName: String
     public let agencyUrl: String
@@ -66,7 +66,7 @@ public struct Agency: Codable, FromCSVLine {
     }
 }
 
-public struct Stop: Codable, FromCSVLine {
+public struct Stop: Codable, FromCSVLine, Equatable, Hashable {
     public let stopId: String
     public let stopCode: String?
     public let stopName: String?
@@ -100,7 +100,7 @@ public struct Stop: Codable, FromCSVLine {
     }
 }
 
-public enum LocationType: Int, Codable {
+public enum LocationType: Int, Codable, Equatable, Hashable {
     case stop = 0
     case station = 1
     case entranceOrExit = 2
@@ -122,7 +122,7 @@ public enum LocationType: Int, Codable {
     }
 }
 
-public enum WheelchairAccessible: Int, Codable {
+public enum WheelchairAccessible: Int, Codable, Equatable, Hashable {
     case noInformation = 0
     case wheelchairAccessible = 1
     case notWheelchairAccessible = 2
@@ -142,7 +142,7 @@ public enum WheelchairAccessible: Int, Codable {
     }
 }
 
-public struct Route: Codable, FromCSVLine {
+public struct Route: Codable, FromCSVLine, Equatable, Hashable {
     public let routeId: String
     public let agencyId: String?
     public let routeShortName: String?
@@ -168,7 +168,7 @@ public struct Route: Codable, FromCSVLine {
     }
 }
 
-public enum RouteType: Int, Codable {
+public enum RouteType: Int, Codable, Equatable, Hashable {
     case tramStreetcaseOrLightRail = 0
     case subwayOrMetro = 1
     case rail = 2
@@ -193,7 +193,7 @@ public enum RouteType: Int, Codable {
     }
 }
 
-public struct Trip: Codable, FromCSVLine {
+public struct Trip: Codable, Equatable, Hashable, FromCSVLine {
     public let routeId: String
     public let serviceId: String
     public let tripId: String
@@ -219,7 +219,7 @@ public struct Trip: Codable, FromCSVLine {
     }
 }
 
-public enum Direction: Int, Codable {
+public enum Direction: Int, Codable, Equatable, Hashable {
     case travelInOneDirection = 0
     case travelInOppositeDirection = 1
 
@@ -238,7 +238,7 @@ public enum Direction: Int, Codable {
     }
 }
 
-public enum BikesAllowed: Int, Codable {
+public enum BikesAllowed: Int, Codable, Equatable, Hashable {
     case noBikeInformation = 0
     case atleastOneBicycle = 1
     case noBicyclesAllowed = 2
@@ -258,7 +258,7 @@ public enum BikesAllowed: Int, Codable {
     }
 }
 
-public struct StopTime: Codable, FromCSVLine {
+public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
     public let tripId: String
     public let arrivalTime: String?
     public let departureTime: String?
@@ -284,7 +284,7 @@ public struct StopTime: Codable, FromCSVLine {
     }
 }
 
-public enum PickupType: Int, Codable {
+public enum PickupType: Int, Codable, Equatable, Hashable {
     case regularlyScheduled = 0
     case noPickupAvailable = 1
     case phoneAgencyForPickup = 2
@@ -305,7 +305,7 @@ public enum PickupType: Int, Codable {
     }
 }
 
-public enum DropOffType: Int, Codable {
+public enum DropOffType: Int, Codable, Equatable, Hashable {
     case regularlyScheduled = 0
     case noDropOffAvailable = 1
     case phoneAgencyForDropOff = 2
@@ -326,7 +326,7 @@ public enum DropOffType: Int, Codable {
     }
 }
 
-public enum Timepoint: Int, Codable {
+public enum Timepoint: Int, Codable, Equatable, Hashable {
     case approximate = 0
     case exact = 1
 
@@ -344,7 +344,7 @@ public enum Timepoint: Int, Codable {
     }
 }
 
-public struct GTFSCalendar: Codable, FromCSVLine {
+public struct GTFSCalendar: Codable, FromCSVLine, Equatable, Hashable {
     public let serviceId: String
     public let monday: ServiceAvailable
     public let tuesday: ServiceAvailable
@@ -370,7 +370,7 @@ public struct GTFSCalendar: Codable, FromCSVLine {
     }
 }
 
-public enum ServiceAvailable: Int, Codable {
+public enum ServiceAvailable: Int, Codable, Equatable, Hashable {
     case notAvailableForAll = 0
     case availableForAll = 1
 
@@ -384,7 +384,7 @@ public enum ServiceAvailable: Int, Codable {
     }
 }
 
-public struct CalendarDate: Codable, FromCSVLine {
+public struct CalendarDate: Codable, FromCSVLine, Equatable, Hashable {
     public let serviceId: String
     public let date: String
     public let exceptionType: ExceptionType
@@ -396,7 +396,7 @@ public struct CalendarDate: Codable, FromCSVLine {
     }
 }
 
-public enum ExceptionType: Int, Codable {
+public enum ExceptionType: Int, Codable, Equatable, Hashable {
     case serviceAdded = 1
     case serviceRemoved = 2
 
@@ -410,7 +410,7 @@ public enum ExceptionType: Int, Codable {
     }
 }
 
-public struct FareAttribute: Codable, FromCSVLine {
+public struct FareAttribute: Codable, FromCSVLine, Equatable, Hashable {
     public let fareId: String
     public let price: Float
     public let currencyType: String
@@ -430,7 +430,7 @@ public struct FareAttribute: Codable, FromCSVLine {
     }
 }
 
-public enum PaymentMethod: Int, Codable {
+public enum PaymentMethod: Int, Codable, Equatable, Hashable {
     case farePaidOnBoard = 0
     case fareMustBePaidBeforeBoarding = 1
 
@@ -444,7 +444,7 @@ public enum PaymentMethod: Int, Codable {
     }
 }
 
-public enum TransfersAllowed: Int, Codable {
+public enum TransfersAllowed: Int, Codable, Equatable, Hashable {
     case noTransfers = 0
     case oneTransfer = 1
     case twoTransfers = 2
@@ -460,7 +460,7 @@ public enum TransfersAllowed: Int, Codable {
     }
 }
 
-public struct FareRule: Codable, FromCSVLine {
+public struct FareRule: Codable, FromCSVLine, Equatable, Hashable {
     public let fareId: String
     public let routeId: String?
     public let originId: String?
@@ -476,7 +476,7 @@ public struct FareRule: Codable, FromCSVLine {
     }
 }
 
-public struct Shape: Codable, FromCSVLine {
+public struct Shape: Codable, FromCSVLine, Equatable, Hashable {
     public let shapeId: String?
     public let shapePtLat: Double
     public let shapePtLon: Double
@@ -492,7 +492,7 @@ public struct Shape: Codable, FromCSVLine {
     }
 }
 
-public struct Frequency: Codable, FromCSVLine {
+public struct Frequency: Codable, FromCSVLine, Equatable, Hashable {
     public let tripId: String
     public let startTime: String
     public let endTime: String
@@ -508,7 +508,7 @@ public struct Frequency: Codable, FromCSVLine {
     }
 }
 
-public enum ExactTimes: Int, Codable {
+public enum ExactTimes: Int, Codable, Equatable, Hashable {
     case frequencyBasedTrips = 0
     case scheduleBasedTrips = 1
 
@@ -527,7 +527,7 @@ public enum ExactTimes: Int, Codable {
     }
 }
 
-public struct Transfer: Codable, FromCSVLine {
+public struct Transfer: Codable, FromCSVLine, Equatable, Hashable {
     public let fromStopId: String
     public let topStopId: String
     public let transferType: TransferType
@@ -541,7 +541,7 @@ public struct Transfer: Codable, FromCSVLine {
     }
 }
 
-public enum TransferType: Int, Codable {
+public enum TransferType: Int, Codable, Equatable, Hashable {
     case recommendedTransferPoint = 0
     case timeTransferPoint = 1
     case minimumTimeTransfer = 2
@@ -557,7 +557,7 @@ public enum TransferType: Int, Codable {
     }
 }
 
-public struct Pathway: Codable, FromCSVLine {
+public struct Pathway: Codable, FromCSVLine, Equatable, Hashable {
     public let pathwayId: String
     public let fromStopId: String
     public let toStopId: String
@@ -587,7 +587,7 @@ public struct Pathway: Codable, FromCSVLine {
     }
 }
 
-public enum Bidirectional: Int, Codable {
+public enum Bidirectional: Int, Codable, Equatable, Hashable {
     case unidirectional = 0
     case bidirectional = 1
 
@@ -601,7 +601,7 @@ public enum Bidirectional: Int, Codable {
     }
 }
 
-public enum PathwayMode: Int, Codable {
+public enum PathwayMode: Int, Codable, Equatable, Hashable {
     case walkway = 1
     case stairs = 2
     case movingSidewalkOrTravelator = 3
@@ -619,7 +619,7 @@ public enum PathwayMode: Int, Codable {
     }
 }
 
-public struct Level: Codable, FromCSVLine {
+public struct Level: Codable, FromCSVLine, Equatable, Hashable {
     public let levelId: String
     public let levelIndex: Float
     public let levelName: String?
@@ -631,7 +631,7 @@ public struct Level: Codable, FromCSVLine {
     }
 }
 
-public struct FeedInfo: Codable, FromCSVLine {
+public struct FeedInfo: Codable, FromCSVLine, Equatable, Hashable {
     public let feedPublisherName: String
     public let feedPublisherUrl: String
     public let feedLang: String
@@ -653,7 +653,7 @@ public struct FeedInfo: Codable, FromCSVLine {
     }
 }
 
-public struct Translation: Codable, FromCSVLine {
+public struct Translation: Codable, FromCSVLine, Equatable, Hashable {
     public let tableName: TableName
     public let fieldName: String
     public let language: String
@@ -669,7 +669,7 @@ public struct Translation: Codable, FromCSVLine {
     }
 }
 
-public enum TableName: String, Codable {
+public enum TableName: String, Codable, Equatable, Hashable {
     case agency
     case stops
     case routes
@@ -682,7 +682,7 @@ public enum TableName: String, Codable {
     }
 }
 
-public struct Attribution: Codable, FromCSVLine {
+public struct Attribution: Codable, FromCSVLine, Equatable, Hashable {
     public let attributionId: String?
     public let agencyId: String?
     public let routeId: String?
@@ -710,7 +710,7 @@ public struct Attribution: Codable, FromCSVLine {
     }
 }
 
-public enum HasRole: Int, Codable {
+public enum HasRole: Int, Codable, Equatable, Hashable {
     case organizationDoesNotHaveRole = 0
     case organizationDoesHaveRole = 1
 
