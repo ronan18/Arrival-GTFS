@@ -78,12 +78,14 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     public init(from stopTimes: [StopTime]) {
         self.all = stopTimes
         var byStopTimeID: [String: StopTime] = [:]
-        var byStopID: [String: StopTime] = [:]
+        var byStopID: [String: [StopTime]] = [:]
         var byTripID: [String: [StopTime]] = [:]
         
         stopTimes.forEach({stopTime in
             byStopTimeID[stopTime.stopId] = stopTime
-            byStopID[stopTime.stopId] = stopTime
+            var current =  byStopID[stopTime.stopId] ?? []
+            current.append(stopTime)
+            byStopID[stopTime.stopId] = current
             var currentByTripID: [StopTime] = byTripID[stopTime.tripId] ?? []
             currentByTripID.append(stopTime)
             byTripID[stopTime.tripId] = currentByTripID
@@ -97,8 +99,8 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
         self.ready = .ready
     }
     
-    ///Shows all stop times for a particular stop
-    public var byStopID: [String: StopTime]
+    ///Shows all stop times for a particular Station
+    public var byStopID: [String: [StopTime]]
     ///Shows all stops timesfor a partidular trip
     public var byTripID: [String: [StopTime]]
 }
@@ -171,7 +173,7 @@ public struct RoutesDB: Codable, Hashable, Equatable {
     }
 
     
-    ///Shows all routes that a stop has
+    ///Shows all routes that a station has
     public var byStopID: [String: [Route]]
 }
 

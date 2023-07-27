@@ -40,6 +40,89 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         
     }
+    
+    func testStationsDB() throws {
+        let db = StationsDB(from: self.gtfs!.stops)
+        self.gtfs!.stops.forEach({stop in
+            if stop.locationType == .stop {
+                XCTAssertEqual(stop, db.byStopID[stop.stopId])
+                XCTAssertTrue(db.all.contains(stop))
+            } else {
+                XCTAssertFalse(db.all.contains(stop))
+                XCTAssertTrue(db.byStopID[stop.stopId] == nil)
+            }
+            
+        })
+    }
+    
+    func testStopTimesDB() throws {
+        print("testing stop times DB")
+        let db = StopTimesDB(from: self.gtfs!.stopTimes)
+        var i = 0
+        self.db!.stations.all.forEach({station in
+            i += 1
+            //print("testing stoptimes by stop id for \(station.stopId)")
+            let stopTimesForStation = self.gtfs!.stopTimes.filter({stopTime in
+                return stopTime.stopId == station.stopId
+            })
+           // print("got \(stopTimesForStation.count) stop times vs \(db.byStopID[station.stopId]!.count) indexed")
+            print("by stopID \(i)/\(self.db!.stations.all.count)")
+            XCTAssertEqual(stopTimesForStation, db.byStopID[station.stopId]!)
+        })
+        i = 0
+        self.db!.trips.all.forEach({trip in
+            i += 1
+            
+           // print("testing stoptimes by trip id for \(trip.tripHeadsign ?? "error")")
+            let stopTimesForTrip = self.gtfs!.stopTimes.filter({stopTime in
+                return stopTime.tripId == trip.tripId
+            })
+            //print("got \(stopTimesForTrip.count) stop times vs \(db.byTripID[trip.tripId]!.count) indexed")
+            print("by trip ID \(i)/\(self.db!.trips.all.count)")
+            XCTAssertEqual(stopTimesForTrip, db.byTripID[trip.tripId]!)
+        })
+    }
+    
+    func testTripsDB() throws {
+        let db = TripsDB(from: self.gtfs!.trips, stopTimes: self.gtfs!.stopTimes)
+        
+        XCTAssertEqual(db.all, self.gtfs!.trips)
+        self.gtfs!.trips.forEach({trip in
+            XCTAssertEqual(db.byTripID[trip.tripId], trip)
+        })
+        self.db!.stations.all.forEach {station in
+            let dbTripsForStop = db.byStopID[station.stopId]
+            let filtered = self.gtfs!.stopTimes.filter({stopTime in
+                return stopTime.stopId == station.stopId
+            })
+            let result = filtered.map({stopTime in
+                return db.byTripID[stopTime.tripId]!
+            })
+            XCTAssertEqual(dbTripsForStop, result)
+        }
+    }
+    
+    func testRoutesDB() throws {
+        let db = RoutesDB(from: self.gtfs!.routes, trips: self.db!.trips, stations: self.db!.stations)
+        XCTAssertEqual(db.all, self.gtfs!.routes)
+        self.gtfs!.routes.forEach({route in
+            XCTAssertEqual(db.byRouteID[route.routeId], route)
+        })
+        self.db!.stations.all.forEach({station in
+            let dbResult = db.byStopID[station.stopId]!
+            
+            let stopTimesForStation = self.gtfs!.stopTimes.filter({stopTime in
+                return stopTime.stopId == station.stopId
+            })
+            stopTimesForStation.forEach({stopTime in
+                let trip = self.db!.trips.byTripID[stopTime.tripId]!
+                let route = db.byRouteID[trip.routeId]
+                XCTAssertTrue(dbResult.contains(route!))
+            })
+            
+        })
+    }
+    
     func testDBIntalizerSpeed() {
         self.measure {
             let _ = GTFSDB(from: gtfs!)
