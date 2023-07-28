@@ -258,13 +258,17 @@ public enum BikesAllowed: Int, Codable, Equatable, Hashable {
     }
 }
 
-public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
+public struct StopTime: Codable, FromCSVLine, Equatable, Hashable, Comparable {
+    public static func < (lhs: StopTime, rhs: StopTime) -> Bool {
+        return lhs.stopSequence < rhs.stopSequence
+    }
+    
     public let tripId: String
-    public let arrivalTime: Date
-    public let departureTime: Date
+    public let arrivalTime: String
+    public let departureTime: String
     public let stopId: String
     public let stopSequence: Int
-    public let stopHeadsign: String?
+    public let stopHeadsign: String
     public let pickupType: PickupType?
     public let dropOffType: DropOffType?
     public let shapeDistTraveled: Float?
@@ -272,11 +276,11 @@ public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
 
     public init(line: CSVLine) {
         tripId = line["trip_id"]!
-        arrivalTime = Date(bartTime: line["arrival_time"]!)
-        departureTime = Date(bartTime:line["departure_time"]!)
+        arrivalTime = line["arrival_time"]!
+        departureTime = line["departure_time"]!
         stopId = line["stop_id"]!
         stopSequence = Int(line["stop_sequence"]!)!
-        stopHeadsign = line["stop_headsign"]
+        stopHeadsign = line["stop_headsign"]!
         pickupType = PickupType.from(line["pickup_type"])
         dropOffType = DropOffType.from(line["drop_off_type"])
         shapeDistTraveled = Float.from(line["shape_dist_traveled"])

@@ -34,10 +34,32 @@ class Arrival_GTFSTests: XCTestCase {
     func testReadPrebuiltData() throws {
         XCTAssertNoThrow(try agtfs.readPrebuilt())
     }
-
-    func testTrainsForStop() throws {
-        let res = agtfs.trains(for: agtfs.db.stations.byStopID["EMBR"]!)
-        XCTAssertFalse(res.isEmpty)
+    func testGTFSRTFetch() async throws {
+          try await self.agtfs.getGTFSRT()
+          
+      
+    }
+    func testArrivalsForStop() throws {
+        let date = Date()
+        self.agtfs.db.stations.all.forEach({
+            station in
+            let res = agtfs.arrivals(for: station, at: date)
+            XCTAssertFalse(res.isEmpty)
+            let dateFormatter = DateFormatter()
+            dateFormatter.timeZone = TimeZone(abbreviation: "PST")
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .medium
+            res.forEach({arrival in
+                let condition = Date(bartTime: arrival.arrivalTime) <= date
+                if (condition) {
+                    print(arrival.arrivalTime, dateFormatter.string(from: Date(bartTime: arrival.arrivalTime)), "vs",  dateFormatter.string(from:date))
+                    print(arrival.stopSequence, arrival.tripId, self.agtfs.db.stopTimes.byTripID[arrival.tripId]!)
+                }
+                XCTAssertFalse(condition)
+            })
+            
+        })
+       
     }
     
     func testGTFSBuildSpeed() {

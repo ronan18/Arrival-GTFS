@@ -37,6 +37,7 @@
 		C5EA64802A71B73600D61FA0 /* Structures.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EA647C2A71B73600D61FA0 /* Structures.swift */; };
 		C5EA64812A71B73600D61FA0 /* gtfs_realtime.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EA647D2A71B73600D61FA0 /* gtfs_realtime.pb.swift */; };
 		C5EA64842A71B75300D61FA0 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = C5EA64832A71B75300D61FA0 /* SwiftProtobuf */; };
+		C5F141D52A73123C00EC5C73 /* Train.model.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F141D42A73123C00EC5C73 /* Train.model.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,7 @@
 		C5EA647A2A71B73600D61FA0 /* GTFS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GTFS.swift; sourceTree = "<group>"; };
 		C5EA647C2A71B73600D61FA0 /* Structures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Structures.swift; sourceTree = "<group>"; };
 		C5EA647D2A71B73600D61FA0 /* gtfs_realtime.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = gtfs_realtime.pb.swift; sourceTree = "<group>"; };
+		C5F141D42A73123C00EC5C73 /* Train.model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Train.model.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +129,7 @@
 			children = (
 				C5EA64502A71B26900D61FA0 /* google_transit_20230213-20230813_v7 */,
 				C5EA642D2A71AF4300D61FA0 /* Arrival_GTFS.h */,
+				C5F141D42A73123C00EC5C73 /* Train.model.swift */,
 				C5EA64472A71B01D00D61FA0 /* ArrivalGTFS.swift */,
 				C5EA64782A71B73600D61FA0 /* GTFS */,
 				C5EA642E2A71AF4300D61FA0 /* Arrival_GTFS.docc */,
@@ -332,6 +335,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C5EA64802A71B73600D61FA0 /* Structures.swift in Sources */,
+				C5F141D52A73123C00EC5C73 /* Train.model.swift in Sources */,
 				C5CFC39B2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift in Sources */,
 				C5EA642F2A71AF4300D61FA0 /* Arrival_GTFS.docc in Sources */,
 				C5EA647F2A71B73600D61FA0 /* GTFS.swift in Sources */,

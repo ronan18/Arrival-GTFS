@@ -28,6 +28,7 @@ public struct GTFSDB: Codable, Hashable {
     public let feedInformation: [FeedInfo]?
     
     public init(from gtfs: GTFS) {
+        print("init DB")
         self.agencies = gtfs.agencies
         self.stops = gtfs.stops
       
@@ -40,8 +41,11 @@ public struct GTFSDB: Codable, Hashable {
         self.transfers = gtfs.transfers
         self.feedInformation = gtfs.feedInformation
         
+        print("1:1 DB built")
+        
         let stations: StationsDB = .init(from: gtfs.stops)
         self.stations = stations
+       
         self.stopTimes = .init(from: gtfs.stopTimes)
         let trips = TripsDB.init(from: gtfs.trips, stopTimes: gtfs.stopTimes)
         self.trips = trips
@@ -69,7 +73,7 @@ public struct StationsDB: Codable, Hashable, Equatable {
             byStopID[station.stopId] = station
         })
         self.byStopID = byStopID
-        
+        print("stations DB built")
     }
 }
 public extension Date {
@@ -100,16 +104,17 @@ public extension Date {
         let hour = components.hour!
         let minute = components.minute!
 
-        var currentDate = Date.now
-        if (nextDay) {
-            currentDate = currentDate + 60*60*24
-           // print("next day for \(bartTime) \(updatedBartString)")
-        }
+  
+       
         // get today and apply saved hour & minute
-        var newComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: currentDate)
+        var newComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: Date.now)
         newComponents.hour = hour
         newComponents.minute = minute
-        let newDate = Calendar.current.date(from: newComponents)!
+        newComponents.timeZone = .init(abbreviation: "PST")
+        var newDate = Calendar.current.date(from: newComponents)!
+        if (nextDay) {
+            newDate = newDate + 60*60*24
+        }
         self = newDate
     }
 }
@@ -133,10 +138,10 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
             currentByTripID.append(stopTime)
             byTripID[stopTime.tripId] = currentByTripID
         })
-        
+        print("sorting stop times")
         byStopID.keys.forEach {key in
             byStopID[key] = byStopID[key]?.sorted(by: { a, b in
-                a.arrivalTime < b.arrivalTime
+                a < b
             })
         }
         self.byStopTimeID = byStopTimeID
@@ -151,6 +156,7 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
         
     
         self.ready = .ready
+        print("stop times DB built")
     }
     
     ///Shows all stop times for a particular Station
@@ -185,6 +191,7 @@ public struct TripsDB: Codable, Hashable, Equatable {
         self.byStopID = byStopID
         
         self.ready = .ready
+        print("trips DB built")
     }
     
 
@@ -224,6 +231,7 @@ public struct RoutesDB: Codable, Hashable, Equatable {
         self.byStopID = inProgressByStopID
         
         self.ready = .ready
+        print("routes DB built")
     }
 
     

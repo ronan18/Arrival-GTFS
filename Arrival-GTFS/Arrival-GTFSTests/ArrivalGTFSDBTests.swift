@@ -28,7 +28,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         if self.gtfs == nil || self.db == nil{
             do {
                 self.gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/google_transit_20230213-20230813_v7")
-                //print("built gtfs", gtfs, gtfs.routes)
+                print("built gtfs", gtfs, gtfs!.routes.count)
                 
                 let data = try JSONEncoder().encode(gtfs)
                 
@@ -40,11 +40,14 @@ class Arrival_GTFSDBTests: XCTestCase {
                     print("Failed to write JSON data: \(error.localizedDescription)")
                 }
                 self.db = .init(from: gtfs!)
+                print("built DB")
+                return
             } catch {
                 // print("error", error)
                 throw ArrivalGTFSError.failedToBuild
             }
         }
+        return
         
     }
     
@@ -52,6 +55,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
     func testDBInitializer() throws {
+        print("test DB Intalizer")
         let db = GTFSDB(from: gtfs!)
         XCTAssertFalse(db.trips.all.isEmpty)
         let tripsForLake = (db.trips.byStopID["LAKE"]) ?? []
@@ -60,7 +64,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         let data = try? JSONEncoder().encode(db)
         
         try? data?.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db.json"))
-        
+        print("cached db to json")
         
     }
     

@@ -13,7 +13,7 @@ public class ArrivalGTFS {
     private let gtfsrtURL = URL(string: "http://api.bart.gov/gtfsrt/tripupdate.aspx")!
     private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/google_transit_20230213-20230813_v7.json")
     private let dbCachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db.json")
-    
+    private var lastGTFSRTHash: Int? = nil
     public var db: GTFSDB
     public var defaultResultLength: Int = 15
     
@@ -55,23 +55,59 @@ public class ArrivalGTFS {
         
         
     }
+    public func getGTFSRT() async throws {
+        print("fetching gtfs-rt")
+        do {
+            
+            let (data, response) = try await URLSession.shared.data(from: self.gtfsrtURL)
+            print("fetch result", data, response)
+            let feedMessage = try TransitRealtime_FeedMessage(serializedData: data)
+            //print(feedMessage)
+            guard feedMessage.hashValue != self.lastGTFSRTHash else {
+                return
+            }
+            self.lastGTFSRTHash = feedMessage.hashValue
+            
+            feedMessage.entity.forEach({entity in
+               
+                print("trip", entity.tripUpdate.trip.tripID)
+                print("vehicle", entity.tripUpdate.vehicle.label)
+                print("delay", entity.tripUpdate.delay)
+                print("stopTimeUpdates", entity.tripUpdate.stopTimeUpdate.count)
+                entity.tripUpdate.stopTimeUpdate.forEach({update in
+                    if (update.scheduleRelationship != .scheduled) {
+                        print(update.scheduleRelationship)
+                    }
+                    if (update.arrival.delay > 0 || update.departure.delay > 0) {
+                        print(update)
+                    }
+                })
+            })
+            
+            return
+        } catch {
+            print("errpr", error)
+           throw error
+        }
+       
+    }
     
     
-    public func trains(for stop: Stop, at: Date = Date()) -> [StopTime] {
+    public func arrivals(for stop: Stop, at: Date = Date()) -> [StopTime] {
         guard let stopTimes = self.db.stopTimes.byStopID[stop.stopId] else {
             return []
         }
         print("got \(stopTimes.count) stops at \(stop.stopName)")
         guard let firstIndex = stopTimes.firstIndex(where: {stopTime in
             //print(stopTime.arrivalTime.formatted(), "vs", at.formatted() )
-            return stopTime.arrivalTime >= at
+            return Date(bartTime: stopTime.arrivalTime) >= at
         }) else {
             return []
         }
-        print("first index \(firstIndex) \(stopTimes[firstIndex ?? 0])")
+        print("first index \(firstIndex) \(stopTimes[firstIndex])")
         let selectedStopTimes = stopTimes[firstIndex..<firstIndex + defaultResultLength]
         print("found \(selectedStopTimes.count) stops")
-        return stopTimes
+        return Array(selectedStopTimes)
         
     }
     
