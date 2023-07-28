@@ -53,7 +53,7 @@ class Arrival_GTFSTests: XCTestCase {
                 let condition = Date(bartTime: arrival.arrivalTime) <= date
                 if (condition) {
                     print(arrival.arrivalTime, dateFormatter.string(from: Date(bartTime: arrival.arrivalTime)), "vs",  dateFormatter.string(from:date))
-                    print(arrival.stopSequence, arrival.tripId, self.agtfs.db.stopTimes.byTripID[arrival.tripId]!)
+                  //  print(arrival.stopSequence, arrival.tripId, self.agtfs.db.stopTimes.byTripID[arrival.tripId]!)
                 }
                 XCTAssertFalse(condition)
             })

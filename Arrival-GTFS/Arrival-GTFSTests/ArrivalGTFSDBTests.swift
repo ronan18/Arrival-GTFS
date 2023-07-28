@@ -86,15 +86,20 @@ class Arrival_GTFSDBTests: XCTestCase {
         print("testing stop times DB")
         let db = StopTimesDB(from: self.gtfs!.stopTimes)
         var i = 0
-        self.db!.stations.all.forEach({station in
+       self.db!.stations.all.forEach({station in
             i += 1
             //print("testing stoptimes by stop id for \(station.stopId)")
             let stopTimesForStation = self.gtfs!.stopTimes.filter({stopTime in
                 return stopTime.stopId == station.stopId
+            }).sorted(by: { a, b in
+                a.stopSequence < b.stopSequence
             })
-           // print("got \(stopTimesForStation.count) stop times vs \(db.byStopID[station.stopId]!.count) indexed")
+           
+           print("got \(stopTimesForStation.count) stop times vs \(db.byStopID(stopId: station.stopId)!.count) indexed for \(station.stopId)")
+          // print("equal", stopTimesForStation == db.byStopID[station.stopId]!)
+          // print(stopTimesForStation.hashValue, db.byStopID.hashValue)
             print("by stopID \(i)/\(self.db!.stations.all.count)")
-            XCTAssertEqual(stopTimesForStation, db.byStopID[station.stopId]!)
+           XCTAssertEqual(stopTimesForStation, db.byStopID(stopId: station.stopId)!)
         })
         i = 0
         self.db!.trips.all.forEach({trip in
@@ -103,10 +108,12 @@ class Arrival_GTFSDBTests: XCTestCase {
            // print("testing stoptimes by trip id for \(trip.tripHeadsign ?? "error")")
             let stopTimesForTrip = self.gtfs!.stopTimes.filter({stopTime in
                 return stopTime.tripId == trip.tripId
+            }).sorted(by: { a, b in
+                a.stopSequence < b.stopSequence
             })
             //print("got \(stopTimesForTrip.count) stop times vs \(db.byTripID[trip.tripId]!.count) indexed")
             print("by trip ID \(i)/\(self.db!.trips.all.count)")
-            XCTAssertEqual(stopTimesForTrip, db.byTripID[trip.tripId]!)
+            XCTAssertEqual(stopTimesForTrip, db.byTripID(tripId: trip.tripId)!)
         })
     }
     

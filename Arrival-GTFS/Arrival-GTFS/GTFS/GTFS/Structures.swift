@@ -204,7 +204,7 @@ public struct Trip: Codable, Equatable, Hashable, FromCSVLine {
     public let shapeId: String?
     public let wheelchairAccessible: WheelchairAccessible?
     public let bikesAllowed: BikesAllowed?
-
+    public var trainType: TrainType
     public init(line: CSVLine) {
         routeId = line["route_id"]!
         serviceId = line["service_id"]!
@@ -216,6 +216,7 @@ public struct Trip: Codable, Equatable, Hashable, FromCSVLine {
         shapeId = line["shape_id"]
         wheelchairAccessible = WheelchairAccessible.from(line["wheelchair_accessible"])
         bikesAllowed = BikesAllowed.from(line["bikes_allowed"])
+        self.trainType = .unknown
     }
 }
 
@@ -257,15 +258,18 @@ public enum BikesAllowed: Int, Codable, Equatable, Hashable {
         }
     }
 }
-
-public struct StopTime: Codable, FromCSVLine, Equatable, Hashable, Comparable {
-    public static func < (lhs: StopTime, rhs: StopTime) -> Bool {
-        return lhs.stopSequence < rhs.stopSequence
-    }
+public enum TrainType: String, Codable, Hashable, Equatable {
+    case threeDoor = "2-door"
+    case twoDoor = "3-door"
+    case unknown = "unknown"
+}
+public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
     
     public let tripId: String
     public let arrivalTime: String
     public let departureTime: String
+    public var arrivalDelay: TimeInterval? = nil
+    public var departureDelay: TimeInterval? = nil
     public let stopId: String
     public let stopSequence: Int
     public let stopHeadsign: String
@@ -273,6 +277,7 @@ public struct StopTime: Codable, FromCSVLine, Equatable, Hashable, Comparable {
     public let dropOffType: DropOffType?
     public let shapeDistTraveled: Float?
     public let timepoint: Timepoint?
+  
 
     public init(line: CSVLine) {
         tripId = line["trip_id"]!
@@ -285,6 +290,7 @@ public struct StopTime: Codable, FromCSVLine, Equatable, Hashable, Comparable {
         dropOffType = DropOffType.from(line["drop_off_type"])
         shapeDistTraveled = Float.from(line["shape_dist_traveled"])
         timepoint = Timepoint.from(line["timepoint"])
+        
     }
 }
 

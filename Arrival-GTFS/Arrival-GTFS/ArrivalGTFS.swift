@@ -15,11 +15,13 @@ public class ArrivalGTFS {
     private let dbCachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db.json")
     private var lastGTFSRTHash: Int? = nil
     public var db: GTFSDB
+    public var rtDB: GTFSDB
     public var defaultResultLength: Int = 15
     
     public init() {
         let data = try! Data(contentsOf: dbCachePath)
         self.db = try! JSONDecoder().decode(GTFSDB.self, from: data)
+        self.rtDB = self.db
         //print("AGTFS INIT trips: \(gtfs.trips.count) agencies: \(gtfs.agencies.count) stops: \(gtfs.stops.count) routes: \(gtfs.routes.count), stopTimes: \(gtfs.stopTimes.count)")
        // self.gtfs = .init(from: gtfs)
       
@@ -68,21 +70,7 @@ public class ArrivalGTFS {
             }
             self.lastGTFSRTHash = feedMessage.hashValue
             
-            feedMessage.entity.forEach({entity in
-               
-                print("trip", entity.tripUpdate.trip.tripID)
-                print("vehicle", entity.tripUpdate.vehicle.label)
-                print("delay", entity.tripUpdate.delay)
-                print("stopTimeUpdates", entity.tripUpdate.stopTimeUpdate.count)
-                entity.tripUpdate.stopTimeUpdate.forEach({update in
-                    if (update.scheduleRelationship != .scheduled) {
-                        print(update.scheduleRelationship)
-                    }
-                    if (update.arrival.delay > 0 || update.departure.delay > 0) {
-                        print(update)
-                    }
-                })
-            })
+            try self.rtDB.updateWithRT(feedMessage)
             
             return
         } catch {
@@ -94,7 +82,7 @@ public class ArrivalGTFS {
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) -> [StopTime] {
-        guard let stopTimes = self.db.stopTimes.byStopID[stop.stopId] else {
+        guard let stopTimes = self.db.stopTimes.byStopID(stopId: stop.stopId) else {
             return []
         }
         print("got \(stopTimes.count) stops at \(stop.stopName)")
