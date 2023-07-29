@@ -58,7 +58,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         print("test DB Intalizer")
         let db = GTFSDB(from: gtfs!)
         XCTAssertFalse(db.trips.all.isEmpty)
-        let tripsForLake = (db.trips.byStopID["LAKE"]) ?? []
+        let tripsForLake = (db.trips.byStopID("LAKE")) ?? []
         XCTAssertFalse(tripsForLake.isEmpty)
         
         let data = try? JSONEncoder().encode(db)
@@ -72,11 +72,11 @@ class Arrival_GTFSDBTests: XCTestCase {
         let db = StationsDB(from: self.gtfs!.stops)
         self.gtfs!.stops.forEach({stop in
             if stop.locationType == .stop {
-                XCTAssertEqual(stop, db.byStopID[stop.stopId])
+                XCTAssertEqual(stop, db.byStopID(stop.stopId))
                 XCTAssertTrue(db.all.contains(stop))
             } else {
                 XCTAssertFalse(db.all.contains(stop))
-                XCTAssertTrue(db.byStopID[stop.stopId] == nil)
+                XCTAssertTrue(db.byStopID(stop.stopId) == nil)
             }
             
         })
@@ -95,11 +95,11 @@ class Arrival_GTFSDBTests: XCTestCase {
                 a.stopSequence < b.stopSequence
             })
            
-           print("got \(stopTimesForStation.count) stop times vs \(db.byStopID(stopId: station.stopId)!.count) indexed for \(station.stopId)")
+           print("got \(stopTimesForStation.count) stop times vs \(db.byStopID(station.stopId)!.count) indexed for \(station.stopId)")
           // print("equal", stopTimesForStation == db.byStopID[station.stopId]!)
           // print(stopTimesForStation.hashValue, db.byStopID.hashValue)
             print("by stopID \(i)/\(self.db!.stations.all.count)")
-           XCTAssertEqual(stopTimesForStation, db.byStopID(stopId: station.stopId)!)
+           XCTAssertEqual(stopTimesForStation, db.byStopID(station.stopId)!)
         })
         i = 0
         self.db!.trips.all.forEach({trip in
@@ -113,7 +113,7 @@ class Arrival_GTFSDBTests: XCTestCase {
             })
             //print("got \(stopTimesForTrip.count) stop times vs \(db.byTripID[trip.tripId]!.count) indexed")
             print("by trip ID \(i)/\(self.db!.trips.all.count)")
-            XCTAssertEqual(stopTimesForTrip, db.byTripID(tripId: trip.tripId)!)
+            XCTAssertEqual(stopTimesForTrip, db.byTripID(trip.tripId)!)
         })
     }
     
@@ -122,15 +122,15 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         XCTAssertEqual(db.all, self.gtfs!.trips)
         self.gtfs!.trips.forEach({trip in
-            XCTAssertEqual(db.byTripID[trip.tripId], trip)
+            XCTAssertEqual(db.byTripID(trip.tripId), trip)
         })
         self.db!.stations.all.forEach {station in
-            let dbTripsForStop = db.byStopID[station.stopId]
+            let dbTripsForStop = db.byStopID(station.stopId)
             let filtered = self.gtfs!.stopTimes.filter({stopTime in
                 return stopTime.stopId == station.stopId
             })
             let result = filtered.map({stopTime in
-                return db.byTripID[stopTime.tripId]!
+                return db.byTripID(stopTime.tripId)!
             })
             XCTAssertEqual(dbTripsForStop, result)
         }
@@ -140,17 +140,17 @@ class Arrival_GTFSDBTests: XCTestCase {
         let db = RoutesDB(from: self.gtfs!.routes, trips: self.db!.trips, stations: self.db!.stations)
         XCTAssertEqual(db.all, self.gtfs!.routes)
         self.gtfs!.routes.forEach({route in
-            XCTAssertEqual(db.byRouteID[route.routeId], route)
+            XCTAssertEqual(db.byRouteID(route.routeId), route)
         })
         self.db!.stations.all.forEach({station in
-            let dbResult = db.byStopID[station.stopId]!
+            let dbResult = db.byStopID(station.stopId)!
             
             let stopTimesForStation = self.gtfs!.stopTimes.filter({stopTime in
                 return stopTime.stopId == station.stopId
             })
             stopTimesForStation.forEach({stopTime in
-                let trip = self.db!.trips.byTripID[stopTime.tripId]!
-                let route = db.byRouteID[trip.routeId]
+                let trip = self.db!.trips.byTripID(stopTime.tripId)!
+                let route = db.byRouteID(trip.routeId)
                 XCTAssertTrue(dbResult.contains(route!))
             })
             
@@ -164,7 +164,7 @@ class Arrival_GTFSDBTests: XCTestCase {
     }
     func testTripsDBSpeed() {
         self.measure {
-            var tripsDB = TripsDB(from: self.gtfs!.trips, stopTimes: self.gtfs!.stopTimes)
+            var _ = TripsDB(from: self.gtfs!.trips, stopTimes: self.gtfs!.stopTimes)
            
         }
     }

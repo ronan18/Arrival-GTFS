@@ -82,7 +82,7 @@ public class ArrivalGTFS {
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) -> [StopTime] {
-        guard let stopTimes = self.db.stopTimes.byStopID(stopId: stop.stopId) else {
+        guard let stopTimes = self.db.stopTimes.byStopID(stop.stopId) else {
             return []
         }
         print("got \(stopTimes.count) stops at \(stop.stopName)")

@@ -1,19 +1,53 @@
 import Cocoa
+import SwiftUI
+import PlaygroundSupport
 @testable import Arrival_GTFS
+  
 
-var greeting = "Hello, playground"
- let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/google_transit_20230213-20230813_v7.json")
-public extension Date {
-    init(bartTime: String) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeZone = .init(abbreviation: "PST")
-        dateFormatter.dateFormat = "HH:mm:ss"
-        let date = dateFormatter.date(from: bartTime) ?? Date()
-        print("DATE: for \(bartTime) as \(date.formatted(date: .abbreviated, time: .complete))")
-        self = date
-    }
+
+
+struct TestView:  View {
+    let agtfs = ArrivalGTFS()
+    var body: some View {
+        VStack {
+            Table(agtfs.db.stopTimes.all) {
+                TableColumn("Stop", value: \.stopId)
+                TableColumn("Trip Head Sign") {item in
+                    Text(self.agtfs.db.trips.byTripID(tripId: item.tripId)?.tripHeadsign ?? "")
+                }
+                TableColumn("Route") {item in
+                    Text(self.agtfs.db.routes.byRouteID[self.agtfs.db.trips.byTripID(tripId: item.tripId)?.routeId ?? ""]?.routeShortName ?? "")
+                }
+                TableColumn("Arrival Time", value: \.arrivalTime)
+                TableColumn("Departure Time", value: \.departureTime)
+                TableColumn("Stop Sequence") {item in
+                    Text(String(item.stopSequence))
+                }
+             
+                TableColumn("Stop Headsign", value: \.stopHeadsign)
+            }
+           /* Table(agtfs.db.trips.all) {
+                
+                TableColumn("Trip ID", value: \.tripId)
+                TableColumn("Route ID", value: \.routeId)
+                TableColumn("Headsign") {item in
+                    Text(item.tripHeadsign ?? "")
+                    
+                }
+                TableColumn("Route Short Name") {item in
+                    Text(agtfs.db.routes.byRouteID[item.routeId]?.routeShortName ?? "")
+                    
+                }
+                
+                TableColumn("Route Long Name") {item in
+                    Text(agtfs.db.routes.byRouteID[item.routeId]?.routeLongName ?? "")
+                    
+                }
+              
+            } */
+        }
+        }
 }
 
-let date = Date(bartTime: "06:41:00")
 
-print(date.formatted())
+PlaygroundPage.current.setLiveView(TestView())

@@ -66,7 +66,8 @@ public struct Agency: Codable, FromCSVLine, Equatable, Hashable {
     }
 }
 
-public struct Stop: Codable, FromCSVLine, Equatable, Hashable {
+public struct Stop: Identifiable, Codable, FromCSVLine, Equatable, Hashable {
+    public let id: String
     public let stopId: String
     public let stopCode: String?
     public let stopName: String
@@ -97,6 +98,7 @@ public struct Stop: Codable, FromCSVLine, Equatable, Hashable {
         wheelchairBoarding = WheelchairAccessible.from(line["wheelchair_boarding"])
         levelId = line["level_id"]
         platformCode = line["platform_code"]
+        self.id = stopId
     }
 }
 
@@ -142,7 +144,8 @@ public enum WheelchairAccessible: Int, Codable, Equatable, Hashable {
     }
 }
 
-public struct Route: Codable, FromCSVLine, Equatable, Hashable {
+public struct Route: Identifiable, Codable, FromCSVLine, Equatable, Hashable {
+    public let id: String
     public let routeId: String
     public let agencyId: String?
     public let routeShortName: String?
@@ -165,6 +168,7 @@ public struct Route: Codable, FromCSVLine, Equatable, Hashable {
         routeColor = line["route_color"]
         routeTextColor = line["route_text_color"]
         routeSortOrder = Int.from(line["route_sort_order"])
+        self.id = routeId
     }
 }
 
@@ -193,7 +197,8 @@ public enum RouteType: Int, Codable, Equatable, Hashable {
     }
 }
 
-public struct Trip: Codable, Equatable, Hashable, FromCSVLine {
+public struct Trip: Identifiable, Codable, Equatable, Hashable, FromCSVLine {
+    public let id: String
     public let routeId: String
     public let serviceId: String
     public let tripId: String
@@ -216,6 +221,7 @@ public struct Trip: Codable, Equatable, Hashable, FromCSVLine {
         shapeId = line["shape_id"]
         wheelchairAccessible = WheelchairAccessible.from(line["wheelchair_accessible"])
         bikesAllowed = BikesAllowed.from(line["bikes_allowed"])
+        self.id = tripId
         self.trainType = .unknown
     }
 }
@@ -263,7 +269,7 @@ public enum TrainType: String, Codable, Hashable, Equatable {
     case twoDoor = "3-door"
     case unknown = "unknown"
 }
-public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
+public struct StopTime: Identifiable, Codable, FromCSVLine, Equatable, Hashable {
     
     public let tripId: String
     public let arrivalTime: String
@@ -277,7 +283,10 @@ public struct StopTime: Codable, FromCSVLine, Equatable, Hashable {
     public let dropOffType: DropOffType?
     public let shapeDistTraveled: Float?
     public let timepoint: Timepoint?
-  
+    
+    public var id: String {
+        return self.tripId + stopId + String(stopSequence)
+    }
 
     public init(line: CSVLine) {
         tripId = line["trip_id"]!
