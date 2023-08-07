@@ -551,9 +551,12 @@ public struct Transfer: Codable, FromCSVLine, Equatable, Hashable {
     public let topStopId: String
     public let transferType: TransferType
     public let minTransferTime: Int?
-
+    public let fromRouteID: String
+    public let toRouteID: String
     public init(line: CSVLine) {
         fromStopId = line["from_stop_id"]!
+        fromRouteID = line["from_route_id"] ?? ""
+        toRouteID = line["to_route_id"] ?? ""
         topStopId = line["top_stop_id"] ?? "nan"
         transferType = TransferType.from(line["transfer_type"]!)
         minTransferTime = Int.from(line["min_transfer_time"])

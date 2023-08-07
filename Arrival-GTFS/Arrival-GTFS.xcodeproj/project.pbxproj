@@ -51,6 +51,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C5CD3EB32A8073FE00E4272B /* Routing Algorithm.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = "Routing Algorithm.playground"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		C5CFC39A2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalGTFSDB.struct.swift; sourceTree = "<group>"; };
 		C5CFC39C2A72D5F9001FC8C1 /* ArrivalGTFSDBTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalGTFSDBTests.swift; sourceTree = "<group>"; };
 		C5EA642A2A71AF4300D61FA0 /* Arrival_GTFS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Arrival_GTFS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,6 +109,7 @@
 		C5EA64202A71AF4300D61FA0 = {
 			isa = PBXGroup;
 			children = (
+				C5CD3EB32A8073FE00E4272B /* Routing Algorithm.playground */,
 				C5EA642C2A71AF4300D61FA0 /* Arrival-GTFS */,
 				C5EA64382A71AF4300D61FA0 /* Arrival-GTFSTests */,
 				C5EA642B2A71AF4300D61FA0 /* Products */,

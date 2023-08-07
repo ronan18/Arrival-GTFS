@@ -85,17 +85,59 @@ public class ArrivalGTFS {
         guard let stopTimes = self.db.stopTimes.byStopID(stop.stopId) else {
             return []
         }
+        
         print("got \(stopTimes.count) stops at \(stop.stopName)")
-        guard let firstIndex = stopTimes.firstIndex(where: {stopTime in
+        var stopTimesSorted = stopTimes.sorted(by: {a, b in
+            return Date(bartTime: a.arrivalTime) < Date(bartTime: b.arrivalTime)
+        })
+        guard let firstIndex = stopTimesSorted.firstIndex(where: {stopTime in
             //print(stopTime.arrivalTime.formatted(), "vs", at.formatted() )
             return Date(bartTime: stopTime.arrivalTime) >= at
         }) else {
             return []
         }
         print("first index \(firstIndex) \(stopTimes[firstIndex])")
-        let selectedStopTimes = stopTimes[firstIndex..<firstIndex + defaultResultLength]
+        let selectedStopTimes = stopTimesSorted[firstIndex..<firstIndex + defaultResultLength]
         print("found \(selectedStopTimes.count) stops")
         return Array(selectedStopTimes)
+        
+    }
+    
+    public func directRoutes(from: Stop, to: Stop) -> [Route] {
+        let fromStationRoutes: [Route] = self.db.routes.byStopID(from.stopId) ?? []
+        let toStationRoutes: [Route] = self.db.routes.byStopID(to.stopId) ?? []
+        var similarRoutes: [Route] = []
+        fromStationRoutes.forEach({ route in
+            if (toStationRoutes.contains(route)) {
+                similarRoutes.append(route)
+            }
+        })
+        similarRoutes = similarRoutes.filter({route in
+            let trips = (self.db.trips.byRouteID(route.id) ?? [])
+            guard !trips.isEmpty else {
+                return false
+            }
+            let stopTimes = (self.db.stopTimes.byTripID(trips.first!.id) ?? [])
+            
+            //print("\(trips.count) trips for route, \(stopTimes.count) stop times")
+            let startIndex = stopTimes.first(where: {stopTime in
+                stopTime.stopId == from.stopId
+            })?.stopSequence ?? 0
+            let stopIndex = stopTimes.first(where: {stopTime in
+                stopTime.stopId == to.stopId
+            })?.stopSequence ?? 0
+            //print(startIndex,stopIndex, route.routeShortName,  stopIndex > startIndex)
+            return stopIndex > startIndex
+        })
+        return similarRoutes
+    }
+    public func arrivals(for routes: [Route], stop: Stop, at: Date = Date()) -> [StopTime] {
+        let stopArrivals = self.arrivals(for: stop, at: at)
+        return stopArrivals.filter({stopTime in
+            return routes.contains(where: {route in
+                route.routeId == self.db.trips.byTripID(stopTime.tripId)?.routeId
+            })
+        })
         
     }
     

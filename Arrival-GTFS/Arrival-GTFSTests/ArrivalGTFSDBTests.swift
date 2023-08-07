@@ -61,11 +61,21 @@ class Arrival_GTFSDBTests: XCTestCase {
         let tripsForLake = (db.trips.byStopID("LAKE")) ?? []
         XCTAssertFalse(tripsForLake.isEmpty)
         
-        let data = try? JSONEncoder().encode(db)
+        let data = try JSONEncoder().encode(db)
         
-        try? data?.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db.json"))
-        print("cached db to json")
+        try data.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db.json"))
+        let bcf = ByteCountFormatter()
+               bcf.allowedUnits = [.useMB] // optional: restricts the units to MB only
+               bcf.countStyle = .file
+               let size = bcf.string(fromByteCount: Int64(data.count))
         
+        print("cached db to json", size)
+        
+    }
+    
+    func testTransfersDB() throws {
+        let db = TransfersDB(from: self.gtfs!.transfers!)
+        print(db.byStopID("MCAR"))
     }
     
     func testStationsDB() throws {
@@ -80,6 +90,13 @@ class Arrival_GTFSDBTests: XCTestCase {
             }
             
         })
+        let data = try JSONEncoder().encode(db)
+        let bcf = ByteCountFormatter()
+        bcf.allowedUnits = [.useKB, .useMB] // optional: restricts the units to MB only
+               bcf.countStyle = .file
+               let size = bcf.string(fromByteCount: Int64(data.count))
+        
+        print("stations db", size)
     }
     
     func testStopTimesDB() throws {
@@ -115,6 +132,13 @@ class Arrival_GTFSDBTests: XCTestCase {
             print("by trip ID \(i)/\(self.db!.trips.all.count)")
             XCTAssertEqual(stopTimesForTrip, db.byTripID(trip.tripId)!)
         })
+        let data = try JSONEncoder().encode(db)
+        let bcf = ByteCountFormatter()
+        bcf.allowedUnits = [.useKB, .useMB] // optional: restricts the units to MB only
+               bcf.countStyle = .file
+               let size = bcf.string(fromByteCount: Int64(data.count))
+        
+        print("stop times db", size)
     }
     
     func testTripsDB() throws {
@@ -134,6 +158,13 @@ class Arrival_GTFSDBTests: XCTestCase {
             })
             XCTAssertEqual(dbTripsForStop, result)
         }
+        let data = try JSONEncoder().encode(db)
+        let bcf = ByteCountFormatter()
+        bcf.allowedUnits = [.useKB, .useMB] // optional: restricts the units to MB only
+               bcf.countStyle = .file
+               let size = bcf.string(fromByteCount: Int64(data.count))
+        
+        print("trips db", size)
     }
     
     func testRoutesDB() throws {
@@ -155,6 +186,34 @@ class Arrival_GTFSDBTests: XCTestCase {
             })
             
         })
+        let data = try JSONEncoder().encode(db)
+        let bcf = ByteCountFormatter()
+        bcf.allowedUnits = [.useKB, .useMB] // optional: restricts the units to MB only
+               bcf.countStyle = .file
+               let size = bcf.string(fromByteCount: Int64(data.count))
+        
+        print("routes db", size)
+    }
+    func testDBSizes() throws {
+        let routesDB = try getSize(RoutesDB(from: self.gtfs!.routes, trips: self.db!.trips, stations: self.db!.stations))
+        let tripsDB = try getSize(TripsDB(from: self.gtfs!.trips, stopTimes: self.gtfs!.stopTimes))
+        let stopTimesDB = try getSize(StopTimesDB(from: self.gtfs!.stopTimes))
+        let stationDB = try getSize(StationsDB(from: self.gtfs!.stops))
+        let db = try getSize(self.db!)
+        
+        print(routesDB,tripsDB,stopTimesDB, stationDB, db)
+        
+        
+        
+    }
+    func getSize(_ data: Codable) throws -> String {
+        let data = try JSONEncoder().encode(data)
+        let bcf = ByteCountFormatter()
+        bcf.allowedUnits = [.useKB, .useMB] // optional: restricts the units to MB only
+               bcf.countStyle = .file
+               let size = bcf.string(fromByteCount: Int64(data.count))
+        return size
+        
     }
     
     func testDBIntalizerSpeed() {

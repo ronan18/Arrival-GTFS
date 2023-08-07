@@ -17,9 +17,8 @@ public struct GTFSDB: Codable, Hashable {
     public var routes: RoutesDB
     public var trips: TripsDB
     public var stopTimes: StopTimesDB
+    public let transfers: TransfersDB
     
-    public var initialTrips: TripsDB
-    public var initialStopTimes: StopTimesDB
     
     public let agencies: [Agency]
     public let stops: [Stop]
@@ -28,7 +27,7 @@ public struct GTFSDB: Codable, Hashable {
     public let fareAttributes: [FareAttribute]?
     public let fareRules: [FareRule]?
     public let frequencies: [Frequency]?
-    public let transfers: [Transfer]?
+    
     public let feedInformation: [FeedInfo]?
     
     public init(from gtfs: GTFS) {
@@ -42,7 +41,7 @@ public struct GTFSDB: Codable, Hashable {
         self.fareAttributes = gtfs.fareAttributes
         self.fareRules = gtfs.fareRules
         self.frequencies = gtfs.frequencies
-        self.transfers = gtfs.transfers
+        self.transfers = TransfersDB(from: gtfs.transfers!)
         self.feedInformation = gtfs.feedInformation
         
         print("1:1 DB built")
@@ -54,8 +53,8 @@ public struct GTFSDB: Codable, Hashable {
         let trips = TripsDB.init(from: gtfs.trips, stopTimes: gtfs.stopTimes)
         self.trips = trips
         self.routes = .init(from: gtfs.routes, trips: trips, stations: stations)
-        self.initialStopTimes = self.stopTimes
-        self.initialTrips = self.trips
+        //self.initialStopTimes = self.stopTimes
+        //self.initialTrips = self.trips
         self.dbVID = UUID().uuidString
        
     
@@ -80,11 +79,11 @@ public struct GTFSDB: Codable, Hashable {
             print("no trip updates for enetity \(entity.hasAlert) \(entity.hasVehicle) \(entity.unknownFields)")
             throw RTUpdateError.noTripUpdates
         }
-        guard var trip = self.initialTrips.byTripID(entity.tripUpdate.trip.tripID) else {
+        guard var trip = self.trips.byTripID(entity.tripUpdate.trip.tripID) else {
             print("no trip updates for enetity \(entity.hasAlert) \(entity.hasVehicle) \(entity.unknownFields)")
             throw RTUpdateError.specifiedTripDoesntExist
         }
-        guard var stopTimes = self.initialStopTimes.byTripID(entity.tripUpdate.trip.tripID) else {
+        guard var stopTimes = self.stopTimes.byTripID(entity.tripUpdate.trip.tripID) else {
             throw RTUpdateError.noStopTimesExist
         }
         trip.trainType = TrainType(rawValue:  entity.tripUpdate.vehicle.label) ?? .unknown
@@ -117,9 +116,32 @@ public enum RTUpdateError: Error {
     case specifiedTripDoesntExist
     case noStopTimesExist
 }
+public struct TransfersDB: Codable, Hashable, Equatable {
+    public let all: [Transfer]
+    private let byStopIDIndex: [String: [Int]]
+    public init(from transfers: [Transfer]) {
+        self.all = transfers
+        var byStopID: [String: [Int]] = [:]
+        for i in 0..<all.count {
+           let transfer = all[i]
+            var current = byStopID[transfer.topStopId] ?? []
+            current.append(i)
+            byStopID[transfer.fromStopId] = current
+        }
+        self.byStopIDIndex = byStopID
+    }
+    func byStopID(_ stopId: String) -> [Transfer]? {
+        guard let index = self.byStopIDIndex[stopId] else {
+            return nil
+        }
+        return index.map({i in
+            return all[i]
+        })
+    }
+}
 public struct StationsDB: Codable, Hashable, Equatable {
     public let all: [Stop]
-    public let byStopIDIndex: [String: Int]
+    private let byStopIDIndex: [String: Int]
     public var ready: DBReady = .ready
     public init(from stops: [Stop]) {
         let all = stops.filter({ stop in
@@ -195,6 +217,7 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     private let byTripIDIndex: [String: [Int]]
     
     public init(from stopTimes: [StopTime]) {
+        let stopTimes = stopTimes 
         self.all = stopTimes
         var byStopTimeID: [String: Int] = [:]
         var byStopID: [String: [Int]] = [:]
@@ -212,12 +235,13 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
         }
         
         print("sorting stop times")
-        byStopID.keys.forEach {key in
+       /* byStopID.keys.forEach {key in
             byStopID[key] = byStopID[key]?.sorted(by: { a, b in
-                stopTimes[a].stopSequence < stopTimes[b].stopSequence
+                print("sorting ", a, "and", b)
+               return Date(bartTime: stopTimes[a].arrivalTime) < Date(bartTime: stopTimes[b].arrivalTime)
             })
         }
-      
+      */
         
         byTripID.keys.forEach {key in
             byTripID[key] = byTripID[key]?.sorted(by: { a, b in
@@ -241,6 +265,7 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     }
     
     ///Shows all stop times for a particular Station
+    ///Sorted by time
     public func byStopID(_ stopId: String) -> [StopTime]? {
         return self.byStopIdIndex[stopId].map{stopTimeIndexes in
             return stopTimeIndexes.map({i in
@@ -261,17 +286,27 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
 public struct TripsDB: Codable, Hashable, Equatable {
     public var all: [Trip]
     
-    public var byTripIDIndex: [String: Int]
-    public var byStopIDIndex: [String: [Int]]
+    private var byTripIDIndex: [String: Int]
+    private var byStopIDIndex: [String: [Int]]
+    private var byRouteIDIndex: [String: [Int]]
     public var ready: DBReady = .notReady
     
     public init(from trips: [Trip], stopTimes: [StopTime]) {
         self.all = trips
         var inProgress: [String: Int] = [:]
+        var byRouteIDIndex: [String: [Int]] = [:]
         for i in 0..<trips.count {
             let trip = trips[i]
             inProgress[trip.tripId] = i
+            if let currentRoute = byRouteIDIndex[trip.routeId] {
+                var currentRouteI = currentRoute
+                currentRouteI.append(i)
+                byRouteIDIndex[trip.routeId] =  currentRouteI
+            } else {
+                byRouteIDIndex[trip.routeId] = [i]
+            }
         }
+        self.byRouteIDIndex = byRouteIDIndex
         /*
          trips.forEach({trip in
          inProgress[trip.tripId] = trip
@@ -308,14 +343,21 @@ public struct TripsDB: Codable, Hashable, Equatable {
             })
         })
     }
+    public func byRouteID(_ routeId: String) -> [Trip]? {
+        return self.byRouteIDIndex[routeId].map({trips in
+            return trips.map({i in
+                return all[i]
+            })
+        })
+    }
     
 }
 
 public struct RoutesDB: Codable, Hashable, Equatable {
     public var all: [Route]
     
-    public var byRouteIDIndex: [String: Int]
-    public var byStopIDIndex: [String: [Int]]
+    private var byRouteIDIndex: [String: Int]
+    private var byStopIDIndex: [String: [Int]]
     
     public var ready: DBReady = .notReady
     
