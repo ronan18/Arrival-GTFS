@@ -8,45 +8,14 @@ let agtfs = ArrivalGTFS()
 print(agtfs.db.stations.all.map({i in return i.stopId}))
 
 
-struct Connection: Codable {
-    let startStation: String
-    let endStation: String
-    let startTime: Date
-    let endTime: Date
-    let tripID: String
-    var routeID: String {
-        agtfs.db.trips.byTripID(self.tripID)!.routeId
-    }
-    var trip: Trip {
-        agtfs.db.trips.byTripID(tripID)!
-    }
-    var route: Route {
-        agtfs.db.routes.byRouteID(routeID)!
-    }
-    //let routeID: String
-    init(start: StopTime, end: StopTime) {
-        self.startTime = Date(bartTime: start.departureTime)
-        self.endTime = Date(bartTime: end.arrivalTime)
-        self.startStation = start.stopId
-        self.endStation = end.stopId
-        self.tripID = start.tripId
-        
-    }
-    var description: String {
-        return "\(self.startStation) at \(self.startTime.formatted(date: .omitted, time: .shortened)) to \(self.endStation) at \(self.endTime.formatted(date: .omitted, time: .shortened)) \(self.route.routeShortName!)"
-    }
-}
 
 var connections: [Connection] = []
+/*
 let data = try Data(contentsOf: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/stopTimes.json"))
-let stopTimes = try JSONDecoder().decode([StopTime].self, from: data)
-/*let stopTimes = agtfs.db.stopTimes.all.sorted(by: {a,b in
-    a.departureTime < b.departureTime
-})
-let data = try! JSONEncoder().encode(stopTimes)
-try! data.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/stopTimes.json"))
-*/
-func path(from: Stop, to: Stop, at: Date = Date()) -> [Connection] {
+let stopTimes = try JSONDecoder().decode([StopTime].self, from: data)*/
+let stopTimes = agtfs.db.stopTimes.all
+
+func path(from: Stop, to: Stop, at: Date = Date(), stopTimes: [StopTime]) -> [Connection] {
     var route: [Connection] = []
     var arrivalTimestamp: [String: Date] = [:]
     var inConnection: [String: Connection?] = [:]
@@ -60,15 +29,13 @@ func path(from: Stop, to: Stop, at: Date = Date()) -> [Connection] {
     let first = stopTimes.firstIndex(where: {time in
         Date(bartTime: time.departureTime) > at
     }) ?? 0
-    
-    print("first index", first)
     for i in first..<stopTimes.count{
         let current = stopTimes[i]
         guard current.stopSequence >= 1 else {
             continue
         }
-            guard let previous = agtfs.db.stopTimes.byTripID(current.tripId)!.first(where: {time in
-                time.stopSequence == current.stopSequence - 1
+            guard let previous = agtfs.db.stopTimes.byTripID(current.tripId)!.last(where: {time in
+                time.stopSequence <= current.stopSequence - 1
             }) else {
               //  print("No previous", current.stopSequence)
                 noPrevious.append(current)
@@ -80,19 +47,35 @@ func path(from: Stop, to: Stop, at: Date = Date()) -> [Connection] {
                 sameStation.append("\(connection.description), \(current.stopSequence), \(previous.stopSequence)")
                
             }
+        if log(connection) {
+            print("WARM SPRINGS CONNECTION", connection.description)
+        }
+        //if the connection happens before the query time or the connection returns to the initial station
             if connection.startTime < at || connection.endStation == from.stopId {
+                if log(connection) {
+                    print("! if the connection happens before the query time or the connection returns to the initial station")
+                }
                 continue
             }
+        //connection comes after already arriving at the destitnation station
             if let final = inConnection[to.stopId], connection.startTime > final!.endTime {
+              //  print("connection comes after already arriving at the destitnation station")
+                if log(connection) {
+                    print("! connection comes after already arriving at the destitnation station")
+                }
                 break
             }
+        //arrives at the station after the current best arrives there
             if let current = inConnection[connection.endStation], connection.endTime > current!.endTime {
+                if log(connection) {
+                    print("! arrives at the station after the current best arrives there")
+                }
                 continue
             }
             if connection.startStation == from.stopId {
                 inConnection[connection.endStation] = connection
             } else if let previous = inConnection[connection.startStation] {
-                var transferTime: TimeInterval = 120
+                var transferTime: TimeInterval = 60
                 if let transfers = agtfs.db.transfers.byStopID(connection.startStation) {
                    if let transfer = transfers.first(where: {transfer in
                         return transfer.toRouteID == connection.routeID && transfer.fromRouteID == previous!.routeID
@@ -109,27 +92,30 @@ func path(from: Stop, to: Stop, at: Date = Date()) -> [Connection] {
                    }
                 }
                 
+                //if you're already on the train or the train your on arrives + a buffer before the next connection leaves
                 if connection.startTime > previous!.endTime + transferTime || connection.tripID == previous!.tripID {
                     inConnection[connection.endStation] = connection
+                    if log(connection) {
+                        print("train or the train your on arrives + a buffer before the next connection leaves")
+                    }
+                } else {
+                    if log(connection) {
+                        print("! you're already on the train or the train your on arrives + a buffer before the next connection leaves")
+                    }
                 }
+            } else {
+               /* print(connection.description, "fell through")
+                inConnection[connection.endStation] = connection*/
             }
-            /*
-            if (arrivalTimestamp[connection.startStation]! < connection.startTime && arrivalTimestamp[connection.endStation]! > connection.endTime) {
-                arrivalTimestamp[connection.endStation] = connection.endTime
-                inConnection[connection.endStation] = connection
-               
-            }*/
+         
         
     }
     sameStation
     noPrevious
-  //  print(arrivalTimestamp)
+
     inConnection.count
     
-    //print(inConnection)
-    //print(skipped, logged)
     var currentStation = to.stopId
-    //print(inConnection)
     var i = 0
     while let connection = inConnection[currentStation] {
         route.insert(connection!, at: 0)
@@ -137,43 +123,122 @@ func path(from: Stop, to: Stop, at: Date = Date()) -> [Connection] {
         
         
         if (currentStation == from.stopId || i > inConnection.keys.count) {
-            print("done found route", i)
+           // print("done found route", i)
             break
         }
         i += 1
     }
-    print(route.map({route in
-        return route.description
-    }))
-    /*inConnection.values.forEach({con in
-        
-        print(con!.description)
-    })*/
+
+    if route.count == 0 {
+        inConnection.values.forEach({con in
+            
+            print(con!.description)
+        })
+    }
     return route
    //
 }
 let clock = ContinuousClock()
-let startStation = agtfs.db.stations.byStopID("ASHB")!
-let endStation = agtfs.db.stations.byStopID("DALY")!
+let startStation = agtfs.db.stations.byStopID("ANTC")!
+let endStation = agtfs.db.stations.byStopID("NBRK")!
+
+func log(_ connection: Connection) -> Bool {
+    //let stat = ["WARM", "FRMT", "UCTY"]
+    let stat = [""]
+    return stat.contains(connection.endStation)
+}
 
 func findPaths(from: Stop, to: Stop, at: Date = Date(), count: Int = 5) -> [[Connection]] {
     var at = at
     var results: [[Connection]] = []
     var i = 0
-    while (i < count) {
-        let res =  path(from: startStation, to: endStation, at: at)
-        results.append(res)
-        if let first = res.first?.startTime {
-            at = Date(timeInterval: 60, since: first)
-        } else {
-            i = count
-        }
+   
+   
+    var workingStopTimes = stopTimes.filter({stopTime in
         
-        i += 1
+        inSerivce(stopTime: stopTime, at: at)
+    })
+    print("working stoptimes count", workingStopTimes.count)
+    while (i < count) {
+        let time = ContinuousClock().measure {
+            let first = workingStopTimes.firstIndex(where: {time in
+                Date(bartTime: time.departureTime) > at
+            }) ?? 0
+            workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
+            print("working stoptimes count", workingStopTimes.count, first)
+            let res =  path(from: startStation, to: endStation, at: at, stopTimes: workingStopTimes)
+            results.append(res)
+            if let first = res.first?.startTime {
+                at = Date(timeInterval: 60, since: first)
+            } else {
+                i = count
+            }
+            
+            i += 1
+        }
+        print("PATH SEARCH TIME", time)
+        
+        
     }
     return results
 }
+public struct Connection: Codable {
+    public let startStation: String
+    public let endStation: String
+    public let startTime: Date
+    public let endTime: Date
+    public let tripID: String
+    public var routeID: String {
+        agtfs.db.trips.byTripID(self.tripID)!.routeId
+    }
+    public var trip: Trip {
+        agtfs.db.trips.byTripID(tripID)!
+    }
+    public  var route: Route {
+        agtfs.db.routes.byRouteID(routeID)!
+    }
+    //let routeID: String
+    public init(start: StopTime, end: StopTime) {
+        self.startTime = Date(bartTime: start.departureTime)
+        self.endTime = Date(bartTime: end.arrivalTime)
+        self.startStation = start.stopId
+        self.endStation = end.stopId
+        self.tripID = start.tripId
+        
+    }
+    public var description: String {
+        return "\(self.startStation) at \(self.startTime.formatted(date: .omitted, time: .shortened)) to \(self.endStation) at \(self.endTime.formatted(date: .omitted, time: .shortened)) \(self.route.routeShortName!)"
+    }
+}
+func inSerivce(stopTime: StopTime, at: Date) -> Bool {
+    let service = agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!
+    guard service.startDate < at && service.endDate > at else {
+        //print("\(service.serviceId) service not currently in service")
+        return false
+    }
+    let dow = Calendar.current.component(.weekday, from: at)
+    switch dow {
+        
+    case 1:
+        return service.sunday == .availableForAll
+    case 2:
+        return agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!.monday == .availableForAll
+    case 3:
+        return agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!.tuesday == .availableForAll
+    case 4:
+        return agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!.wednesday == .availableForAll
+    case 5:
+        return agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!.thursday == .availableForAll
+    case 6:
+        return agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!.friday == .availableForAll
+    case 7:
+        return agtfs.db.calendar.byServiceID(agtfs.db.trips.byTripID(stopTime.tripId)!.serviceId)!.saturday == .availableForAll
+    default:
+        return true
+    }
+}
 func compare(_ a: [Connection], _ b: [Connection]) -> Bool {
+    
     var aScore = 0
     var bScore = 0
     
@@ -191,30 +256,26 @@ func compare(_ a: [Connection], _ b: [Connection]) -> Bool {
     
     return aScore > bScore
 }
-/*
-  f
+
+var res: [[Connection]] = []
+let at = Date(bartTime: "10:00:00")
+print(at.formatted(date: .omitted, time: .shortened))
 let time = clock.measure {
-    let at = Date(bartTime: "10:00")
-    print(at.formatted(date: .omitted, time: .shortened))
-    let firstPath = path(from: startStation, to: endStation, at: at)
-    if let firstTime = firstPath.first?.startTime {
-        path(from: startStation, to: endStation, at: Date(timeInterval: 60, since: firstTime))
-    }
-}*/
-let time = clock.measure {
-    let at = Date(bartTime: "10:00")
-    print(at.formatted(date: .omitted, time: .shortened))
-    var res = findPaths(from: startStation, to: endStation, at: at)
-   res.sort(by: {a, b in
-       return compare(a, b)
-    })
- 
+   
+     res = findPaths(from: startStation, to: endStation, at: at)
+    /* res.sort(by: {a, b in
+     return compare(a, b)
+     })*/
+}
     res.forEach({trip in
+        guard trip.count >= 1 else {
+            return
+        }
         print("-------STARTING TRIP at \(trip.first!.startTime.formatted(date: .omitted, time: .shortened)) with \(trip.count) LEGS arrives at \(trip.last!.endTime.formatted(date: .omitted, time: .shortened))--------")
         trip.forEach({con in
             print(con.description)
         })
         print("-------ENDING TRIP with \(trip.count) LEGS--------")
     })
-}
+
 print(time, "run time")

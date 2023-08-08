@@ -22,7 +22,7 @@ public struct GTFSDB: Codable, Hashable {
     
     public let agencies: [Agency]
     public let stops: [Stop]
-    public let calendar: [GTFSCalendar]?
+    public let calendar: GTFSCalendarDB
     public let calendarDates: [CalendarDate]?
     public let fareAttributes: [FareAttribute]?
     public let fareRules: [FareRule]?
@@ -36,7 +36,7 @@ public struct GTFSDB: Codable, Hashable {
         self.stops = gtfs.stops
       
         
-        self.calendar = gtfs.calendar
+        self.calendar = GTFSCalendarDB(from: gtfs.calendar!)
         self.calendarDates = gtfs.calendarDates
         self.fareAttributes = gtfs.fareAttributes
         self.fareRules = gtfs.fareRules
@@ -139,6 +139,26 @@ public struct TransfersDB: Codable, Hashable, Equatable {
         })
     }
 }
+public struct GTFSCalendarDB: Codable, Hashable, Equatable {
+    public let all: [GTFSCalendar]
+    private let byServiceIDIndex: [String: Int]
+    public init(from calendars: [GTFSCalendar]) {
+        self.all = calendars
+        var byID: [String: Int] = [:]
+        for i in 0..<all.count {
+           let transfer = all[i]
+            
+            byID[transfer.serviceId] = i
+        }
+        self.byServiceIDIndex = byID
+    }
+    func byServiceID(_ serviceId: String) -> GTFSCalendar? {
+        guard let index = self.byServiceIDIndex[serviceId] else {
+            return nil
+        }
+        return all[index]
+    }
+}
 public struct StationsDB: Codable, Hashable, Equatable {
     public let all: [Stop]
     private let byStopIDIndex: [String: Int]
@@ -165,48 +185,7 @@ public struct StationsDB: Codable, Hashable, Equatable {
         return self.all[index]
     }
 }
-public extension Date {
-    init(bartTime: String) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeZone = .init(abbreviation: "PST")
-        dateFormatter.dateFormat = "HH:mm:ss"
-       var nextDay = false
-        var updatedBartString = bartTime
-        
-        var hourInt = Int(bartTime.prefix(2))!
-        if hourInt > 23 {
-            hourInt = hourInt - 24
-            nextDay = true
-            updatedBartString = String(updatedBartString.dropFirst(2))
-            updatedBartString = "0\(hourInt)" + updatedBartString
-        }
-        
-        
-        var date = dateFormatter.date(from: updatedBartString)
-        if  date == nil {
-            date = Date()
-           // print("ERROR DATE", bartTime)
-        }
-        
-       
-        let components = Calendar.current.dateComponents([.hour, .minute], from: date!)
-        let hour = components.hour!
-        let minute = components.minute!
 
-  
-       
-        // get today and apply saved hour & minute
-        var newComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: Date.now)
-        newComponents.hour = hour
-        newComponents.minute = minute
-        newComponents.timeZone = .init(abbreviation: "PST")
-        var newDate = Calendar.current.date(from: newComponents)!
-        if (nextDay) {
-            newDate = newDate + 60*60*24
-        }
-        self = newDate
-    }
-}
 public struct StopTimesDB: Codable, Hashable, Equatable {
     public let all: [StopTime]
     
@@ -217,7 +196,9 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     private let byTripIDIndex: [String: [Int]]
     
     public init(from stopTimes: [StopTime]) {
-        let stopTimes = stopTimes 
+        let stopTimes = stopTimes.sorted(by: {a,b in
+            a.departureTime < b.departureTime
+        })
         self.all = stopTimes
         var byStopTimeID: [String: Int] = [:]
         var byStopID: [String: [Int]] = [:]

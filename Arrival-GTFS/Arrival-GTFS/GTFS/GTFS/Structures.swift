@@ -372,8 +372,8 @@ public struct GTFSCalendar: Codable, FromCSVLine, Equatable, Hashable {
     public let friday: ServiceAvailable
     public let saturday: ServiceAvailable
     public let sunday: ServiceAvailable
-    public let startDate: String
-    public let endDate: String
+    public let startDate: Date
+    public let endDate: Date
 
     public init(line: CSVLine) {
         serviceId = line["service_id"]!
@@ -384,8 +384,14 @@ public struct GTFSCalendar: Codable, FromCSVLine, Equatable, Hashable {
         friday = ServiceAvailable.from(line["friday"]!)
         saturday = ServiceAvailable.from(line["saturday"]!)
         sunday = ServiceAvailable.from(line["sunday"]!)
-        startDate = line["start_date"]!
-        endDate = line["end_date"]!
+       
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = .init(identifier: "PST")
+        dateFormatter.dateFormat = "yyyyMMdd"
+        
+        startDate = dateFormatter.date(from: line["start_date"]!)!
+        endDate = dateFormatter.date(from: line["end_date"]!)!
+        
     }
 }
 

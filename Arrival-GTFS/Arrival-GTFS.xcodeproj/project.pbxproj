@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C59547D52A826E7C00BA711C /* BartTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59547D42A826E7C00BA711C /* BartTime.swift */; };
+		C59547D72A826E9100BA711C /* BartTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59547D62A826E9100BA711C /* BartTimeTests.swift */; };
+		C5CD3EB62A81B9C700E4272B /* ArrivalRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CD3EB52A81B9C700E4272B /* ArrivalRouting.swift */; };
 		C5CFC39B2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CFC39A2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift */; };
 		C5CFC39D2A72D5F9001FC8C1 /* ArrivalGTFSDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CFC39C2A72D5F9001FC8C1 /* ArrivalGTFSDBTests.swift */; };
 		C5EA642F2A71AF4300D61FA0 /* Arrival_GTFS.docc in Sources */ = {isa = PBXBuildFile; fileRef = C5EA642E2A71AF4300D61FA0 /* Arrival_GTFS.docc */; };
@@ -51,7 +54,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C59547D42A826E7C00BA711C /* BartTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BartTime.swift; sourceTree = "<group>"; };
+		C59547D62A826E9100BA711C /* BartTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BartTimeTests.swift; sourceTree = "<group>"; };
 		C5CD3EB32A8073FE00E4272B /* Routing Algorithm.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = "Routing Algorithm.playground"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		C5CD3EB42A819E3800E4272B /* Bart Time.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = "Bart Time.playground"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		C5CD3EB52A81B9C700E4272B /* ArrivalRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalRouting.swift; sourceTree = "<group>"; };
 		C5CFC39A2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalGTFSDB.struct.swift; sourceTree = "<group>"; };
 		C5CFC39C2A72D5F9001FC8C1 /* ArrivalGTFSDBTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrivalGTFSDBTests.swift; sourceTree = "<group>"; };
 		C5EA642A2A71AF4300D61FA0 /* Arrival_GTFS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Arrival_GTFS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,6 +116,7 @@
 		C5EA64202A71AF4300D61FA0 = {
 			isa = PBXGroup;
 			children = (
+				C5CD3EB42A819E3800E4272B /* Bart Time.playground */,
 				C5CD3EB32A8073FE00E4272B /* Routing Algorithm.playground */,
 				C5EA642C2A71AF4300D61FA0 /* Arrival-GTFS */,
 				C5EA64382A71AF4300D61FA0 /* Arrival-GTFSTests */,
@@ -129,6 +137,7 @@
 		C5EA642C2A71AF4300D61FA0 /* Arrival-GTFS */ = {
 			isa = PBXGroup;
 			children = (
+				C5CD3EB52A81B9C700E4272B /* ArrivalRouting.swift */,
 				C5EA64502A71B26900D61FA0 /* google_transit_20230213-20230813_v7 */,
 				C5EA642D2A71AF4300D61FA0 /* Arrival_GTFS.h */,
 				C5F141D42A73123C00EC5C73 /* Train.model.swift */,
@@ -137,6 +146,7 @@
 				C5EA642E2A71AF4300D61FA0 /* Arrival_GTFS.docc */,
 				C5EA64462A71AFBF00D61FA0 /* ArrivalGTFS Development.playground */,
 				C5CFC39A2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift */,
+				C59547D42A826E7C00BA711C /* BartTime.swift */,
 			);
 			path = "Arrival-GTFS";
 			sourceTree = "<group>";
@@ -146,6 +156,7 @@
 			children = (
 				C5EA64392A71AF4300D61FA0 /* Arrival_GTFSTests.swift */,
 				C5CFC39C2A72D5F9001FC8C1 /* ArrivalGTFSDBTests.swift */,
+				C59547D62A826E9100BA711C /* BartTimeTests.swift */,
 			);
 			path = "Arrival-GTFSTests";
 			sourceTree = "<group>";
@@ -339,8 +350,10 @@
 				C5EA64802A71B73600D61FA0 /* Structures.swift in Sources */,
 				C5F141D52A73123C00EC5C73 /* Train.model.swift in Sources */,
 				C5CFC39B2A72D419001FC8C1 /* ArrivalGTFSDB.struct.swift in Sources */,
+				C59547D52A826E7C00BA711C /* BartTime.swift in Sources */,
 				C5EA642F2A71AF4300D61FA0 /* Arrival_GTFS.docc in Sources */,
 				C5EA647F2A71B73600D61FA0 /* GTFS.swift in Sources */,
+				C5CD3EB62A81B9C700E4272B /* ArrivalRouting.swift in Sources */,
 				C5EA64812A71B73600D61FA0 /* gtfs_realtime.pb.swift in Sources */,
 				C5EA64482A71B01D00D61FA0 /* ArrivalGTFS.swift in Sources */,
 				C5EA647E2A71B73600D61FA0 /* CSV.swift in Sources */,
@@ -351,6 +364,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C59547D72A826E9100BA711C /* BartTimeTests.swift in Sources */,
 				C5EA643A2A71AF4300D61FA0 /* Arrival_GTFSTests.swift in Sources */,
 				C5CFC39D2A72D5F9001FC8C1 /* ArrivalGTFSDBTests.swift in Sources */,
 			);
