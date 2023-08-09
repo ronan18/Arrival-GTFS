@@ -7,10 +7,10 @@
 
 import Foundation
 import XCTest
-@testable import Arrival_GTFS
+@testable import ArrivalGTFS
 
 class Arrival_GTFSDBTests: XCTestCase {
-    private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/google_transit_20230213-20230813_v7.json")
+    private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/db/google_transit_20230213-20230813_v7.json")
     var gtfs: GTFS?
     var db: GTFSDB?
     override func setUpWithError() throws {
@@ -27,7 +27,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         if self.gtfs == nil || self.db == nil{
             do {
-                self.gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/google_transit_20230213-20230813_v7")
+                self.gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/db/google_transit_20230213-20230813_v7")
                 print("built gtfs", gtfs, gtfs!.routes.count)
                 
                 let data = try JSONEncoder().encode(gtfs)
@@ -43,7 +43,7 @@ class Arrival_GTFSDBTests: XCTestCase {
                 print("built DB")
                 return
             } catch {
-                // print("error", error)
+                 print("error", error)
                 throw ArrivalGTFSError.failedToBuild
             }
         }
@@ -63,7 +63,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         let data = try JSONEncoder().encode(db)
         
-        try data.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db.json"))
+        try data.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/db.json"))
         let bcf = ByteCountFormatter()
                bcf.allowedUnits = [.useMB] // optional: restricts the units to MB only
                bcf.countStyle = .file

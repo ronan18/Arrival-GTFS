@@ -7,7 +7,7 @@
 
 import Foundation
 import XCTest
-@testable import Arrival_GTFS
+@testable import ArrivalGTFS
 class RoutingTests: XCTestCase {
     let agtfs = ArrivalGTFS()
    
@@ -19,34 +19,38 @@ class RoutingTests: XCTestCase {
             let startStation = agtfs.db.stations.all[index]
             print("----- startiing \(startStation.stopId) ---------")
             DispatchQueue.concurrentPerform(iterations: agtfs.db.stations.all.count - 1) { (index) in
-                let endStation = agtfs.db.stations.all[index]
-                guard startStation != endStation else {
-                    return
-                }
-                
-                var workingStopTimes: [StopTime] = agtfs.db.stopTimes.all
-           
-                   let first = workingStopTimes.firstIndex(where: {stopTime in
-                       Date(bartTime: stopTime.departureTime) > at
-                   }) ?? 0
-                   let last = workingStopTimes.lastIndex(where: {stopTime in
-                       Date(bartTime: stopTime.departureTime) > at + 60*60*3
-                   }) ?? 0
-                 //  print("first index", first, "last index", last)
-                   workingStopTimes = Array(workingStopTimes.dropLast(workingStopTimes.count - last))
-                   workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
-                  
+                Task {
+                    let endStation = agtfs.db.stations.all[index]
+                    guard startStation != endStation else {
+                        return
+                    }
+                    
+                    var workingStopTimes: [StopTime] = agtfs.db.stopTimes.all
+                    
+                    let first = workingStopTimes.firstIndex(where: {stopTime in
+                        Date(bartTime: stopTime.departureTime) > at
+                    }) ?? 0
+                    let last = workingStopTimes.lastIndex(where: {stopTime in
+                        Date(bartTime: stopTime.departureTime) > at + 60*60*3
+                    }) ?? 0
+                    //  print("first index", first, "last index", last)
+                    workingStopTimes = Array(workingStopTimes.dropLast(workingStopTimes.count - last))
+                    workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
+                    
                     workingStopTimes = workingStopTimes.filter({stopTime in
                         
                         self.agtfs.inSerivce(stopTime: stopTime, at: at)
                     })
-                var res: [Connection] = []
-                let time = ContinuousClock().measure {
-                    res = agtfs.path(from: startStation, to: endStation, at: at, stopTimes: workingStopTimes)
+                    var res: [Connection] = []
+                    
+                    
+                    res = await agtfs.path(from: startStation, to: endStation, at: at, stopTimes: workingStopTimes)
+                    
+                    
+                    
+                    print("\(startStation.stopId) to \(endStation.stopId) \(res.count)", time)
+                    XCTAssertFalse(res.isEmpty)
                 }
-                
-                print("\(startStation.stopId) to \(endStation.stopId) \(res.count)", time)
-                XCTAssertFalse(res.isEmpty)
             }
             print("----- finishing \(startStation.stopId) ---------")
         }
@@ -77,9 +81,9 @@ class RoutingTests: XCTestCase {
         
         var res: [Connection] = []
         self.measure {
-           
-            res = agtfs.path(from: startStation, to: endStation, at: at, stopTimes: workingStopTimes)
-          
+            Task {
+                res = await agtfs.path(from: startStation, to: endStation, at: at, stopTimes: workingStopTimes)
+            }
         }
         print(trip: res)
     }
@@ -88,9 +92,9 @@ class RoutingTests: XCTestCase {
         let startStation = agtfs.db.stations.byStopID("WARM")!
         let endStation = agtfs.db.stations.byStopID("SFIA")!
         self.measure {
-           
-            res = agtfs.findPaths(from: startStation, to: endStation, at: at)
-            
+            Task {
+                res = await agtfs.findPaths(from: startStation, to: endStation, at: at)
+            }
         }
         res.forEach({trip in
             guard trip.count >= 1 else {

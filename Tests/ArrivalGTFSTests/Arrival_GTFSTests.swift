@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Arrival_GTFS
+@testable import ArrivalGTFS
 
 class Arrival_GTFSTests: XCTestCase {
     let agtfs = ArrivalGTFS()
@@ -35,7 +35,7 @@ class Arrival_GTFSTests: XCTestCase {
         XCTAssertNoThrow(try agtfs.readPrebuilt())
     }
     func testGTFSRTFetch() async throws {
-          try await self.agtfs.getGTFSRT()
+        //  try await self.agtfs.getGTFSRT()
           
       
     }

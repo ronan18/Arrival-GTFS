@@ -7,7 +7,7 @@
 
 import Foundation
 import XCTest
-@testable import Arrival_GTFS
+@testable import ArrivalGTFS
 class BartTimeTests: XCTestCase {
     let agtfs = ArrivalGTFS()
     func testTime() throws {
