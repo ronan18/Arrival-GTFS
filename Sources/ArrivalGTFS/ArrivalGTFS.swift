@@ -1,6 +1,7 @@
 import Foundation
 
 @available(macOS 13.0, *)
+@available(iOS 16.0, *)
 public class ArrivalGTFSCore {
     private let gftsURL = URL(string: "https://www.bart.gov/dev/schedules/google_transit.zip")!
     private let gtfsrtURL = URL(string: "http://api.bart.gov/gtfsrt/tripupdate.aspx")!
