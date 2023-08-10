@@ -9,7 +9,7 @@ import XCTest
 @testable import ArrivalGTFS
 
 class Arrival_GTFSTests: XCTestCase {
-    let agtfs = ArrivalGTFS()
+    let agtfs = ArrivalGTFSCore()
    
 
     override func setUpWithError() throws {
@@ -24,7 +24,7 @@ class Arrival_GTFSTests: XCTestCase {
     
     func testBuildGTFSData() throws {
         
-        XCTAssertNoThrow(try ArrivalGTFS().build())
+        XCTAssertNoThrow(try ArrivalGTFSCore().build())
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         // Any test you write for XCTest can be annotated as throws and async.
@@ -43,21 +43,22 @@ class Arrival_GTFSTests: XCTestCase {
         let date = Date()
         self.agtfs.db.stations.all.forEach({
             station in
-            let res = agtfs.arrivals(for: station, at: date)
-            XCTAssertFalse(res.isEmpty)
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeZone = TimeZone(abbreviation: "PST")
-            dateFormatter.dateStyle = .medium
-            dateFormatter.timeStyle = .medium
-            res.forEach({arrival in
-                let condition = Date(bartTime: arrival.arrivalTime) <= date
-                if (condition) {
-                    print(arrival.arrivalTime, dateFormatter.string(from: Date(bartTime: arrival.arrivalTime)), "vs",  dateFormatter.string(from:date))
-                  //  print(arrival.stopSequence, arrival.tripId, self.agtfs.db.stopTimes.byTripID[arrival.tripId]!)
-                }
-                XCTAssertFalse(condition)
-            })
-            
+            Task {
+                let res = await agtfs.arrivals(for: station, at: date)
+                XCTAssertFalse(res.isEmpty)
+                let dateFormatter = DateFormatter()
+                dateFormatter.timeZone = TimeZone(abbreviation: "PST")
+                dateFormatter.dateStyle = .medium
+                dateFormatter.timeStyle = .medium
+                res.forEach({arrival in
+                    let condition = Date(bartTime: arrival.arrivalTime) <= date
+                    if (condition) {
+                        print(arrival.arrivalTime, dateFormatter.string(from: Date(bartTime: arrival.arrivalTime)), "vs",  dateFormatter.string(from:date))
+                        //  print(arrival.stopSequence, arrival.tripId, self.agtfs.db.stopTimes.byTripID[arrival.tripId]!)
+                    }
+                    XCTAssertFalse(condition)
+                })
+            }
         })
        
     }
@@ -73,6 +74,21 @@ class Arrival_GTFSTests: XCTestCase {
         self.measure {
             try? agtfs.readPrebuilt()
         }
+    }
+    func testArrivalsSpeed()  {
+        // let exp = expectation(description: "Finished")
+        self.measure {
+            Task {
+                
+                let res = await self.agtfs.arrivals(for:  self.agtfs.db.stations.byStopID("ROCK")!)
+                // exp.fulfill()
+                print(res)
+            
+        }
+    }
+       
+          
+        
     }
 
 }

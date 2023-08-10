@@ -59,9 +59,9 @@ public struct GTFSDB: Codable, Hashable {
         
         
     }
-}
-    /*
-    public func updateWithRT(_ feed: TransitRealtime_FeedMessage) throws {
+
+    
+     func updateWithRT(_ feed: TransitRealtime_FeedMessage) throws {
         var resultingStopTimes: StopTimesDB = self.stopTimes
         
         feed.entity.forEach({entity in
@@ -72,7 +72,7 @@ public struct GTFSDB: Codable, Hashable {
             }
            
         })
-       
+        
         
     }
     func parseRTEntity(_ entity: TransitRealtime_FeedEntity) throws {
@@ -116,7 +116,7 @@ public enum RTUpdateError: Error {
     case noTripUpdates
     case specifiedTripDoesntExist
     case noStopTimesExist
-}*/
+}
 public struct TransfersDB: Codable, Hashable, Equatable {
     public let all: [Transfer]
     private let byStopIDIndex: [String: [Int]]
@@ -195,6 +195,7 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     private let stopTimeByIdIndex: [String: Int]
     private let byStopIdIndex: [String: [Int]]
     private let byTripIDIndex: [String: [Int]]
+    private let byDepartureHourIndex: [String: [Int]]
     
     public init(from stopTimes: [StopTime]) {
         let stopTimes = stopTimes.sorted(by: {a,b in
@@ -204,9 +205,10 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
         var byStopTimeID: [String: Int] = [:]
         var byStopID: [String: [Int]] = [:]
         var byTripID: [String: [Int]] = [:]
+        var byDepartureHourIndex: [String: [Int]] = [:]
         for i in 0..<stopTimes.count {
             let stopTime = stopTimes[i]
-            byStopTimeID[stopTime.stopId] = i
+            byStopTimeID[stopTime.id] = i
             var current =  byStopID[stopTime.stopId] ?? []
             current.append(i)
             byStopID[stopTime.stopId] = current
@@ -214,16 +216,19 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
             currentByTripID.append(i)
             byTripID[stopTime.tripId] = currentByTripID
             
+            var currentDepartureHourIndex = byDepartureHourIndex[String(stopTime.departureTime.prefix(2))] ?? []
+            
+            if currentDepartureHourIndex.count == 0 {
+                currentDepartureHourIndex = [i,i]
+            } else if currentDepartureHourIndex.count == 2 {
+                currentDepartureHourIndex = [currentDepartureHourIndex.first!, i]
+            }
+            byDepartureHourIndex[String(stopTime.departureTime.prefix(2))] = currentDepartureHourIndex
+            
         }
         
         print("sorting stop times")
-       /* byStopID.keys.forEach {key in
-            byStopID[key] = byStopID[key]?.sorted(by: { a, b in
-                print("sorting ", a, "and", b)
-               return Date(bartTime: stopTimes[a].arrivalTime) < Date(bartTime: stopTimes[b].arrivalTime)
-            })
-        }
-      */
+       
         
         byTripID.keys.forEach {key in
             byTripID[key] = byTripID[key]?.sorted(by: { a, b in
@@ -236,10 +241,30 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
         self.byStopIdIndex = byStopID
         self.byTripIDIndex = byTripID
         self.ready = .ready
+        self.byDepartureHourIndex = byDepartureHourIndex
         print("stop times DB built")
     }
-    
-    public func byStopTimeID(stopTimeId: String) -> StopTime? {
+    public func byDepartureHour(_ hour: String) -> [StopTime] {
+       
+        let indexes = self.byDepartureHourIndex[hour] ?? []
+        guard let first = indexes.first else {
+            return []
+        }
+        let last = indexes.last ?? self.all.count - 1
+        let allIndexes = self.all[first...last]
+        return Array(allIndexes)
+    }
+    public func byDepartureHour(from: String, to: String) -> [StopTime] {
+       
+       
+        guard let first = self.byDepartureHourIndex[from]?.first else {
+            return []
+        }
+        let last = self.byDepartureHourIndex[to]?.last ?? self.all.count - 1
+        let allIndexes = self.all[first...last]
+        return Array(allIndexes)
+    }
+    public func byStopTimeID(_ stopTimeId: String) -> StopTime? {
         guard let index = self.stopTimeByIdIndex[stopTimeId] else {
             return nil
         }

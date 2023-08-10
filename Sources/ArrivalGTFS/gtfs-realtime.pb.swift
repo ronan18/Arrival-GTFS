@@ -31,7 +31,7 @@
 // This protocol is published at:
 // https://github.com/google/transit/tree/master/gtfs-realtime
 
-/*
+
 //https://github.com/apple/swift-protobuf
 
 import Foundation
@@ -2672,4 +2672,4 @@ extension TransitRealtime_TranslatedString.Translation: SwiftProtobuf.Message, S
     return true
   }
 }
-*/
+

@@ -1,7 +1,7 @@
 import Foundation
 
 @available(macOS 13.0, *)
-public class ArrivalGTFS {
+public class ArrivalGTFSCore {
     private let gftsURL = URL(string: "https://www.bart.gov/dev/schedules/google_transit.zip")!
     private let gtfsrtURL = URL(string: "http://api.bart.gov/gtfsrt/tripupdate.aspx")!
     private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/db/google_transit_20230213-20230813_v7.json")
@@ -73,11 +73,13 @@ public class ArrivalGTFS {
     }*/
     
     
-    public func arrivals(for stop: Stop, at: Date = Date()) -> [StopTime] {
+    public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
         guard var stopTimes = self.db.stopTimes.byStopID(stop.stopId) else {
             return []
         }
+        let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
         
+        stopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + 3))
         stopTimes = stopTimes.filter({stopTime in
             return self.inSerivce(stopTime: stopTime, at: at)
         })
@@ -97,8 +99,12 @@ public class ArrivalGTFS {
         return Array(selectedStopTimes)
         
     }
+
     func inSerivce(stopTime: StopTime, at: Date) -> Bool {
-        let service = self.db.calendar.byServiceID(self.db.trips.byTripID(stopTime.tripId)!.serviceId)!
+        guard let service = self.db.calendar.byServiceID(self.db.trips.byTripID(stopTime.tripId)?.serviceId ?? "ERROR") else {
+            print("ERROR COULD NOT FIND SERVICE", stopTime.tripId, self.db.trips.byTripID(stopTime.tripId))
+            return false
+        }
         guard service.startDate < at && service.endDate > at else {
             //print("\(service.serviceId) service not currently in service")
             return false
@@ -152,8 +158,8 @@ public class ArrivalGTFS {
         })
         return similarRoutes
     }
-    public func arrivals(for routes: [Route], stop: Stop, at: Date = Date()) -> [StopTime] {
-        let stopArrivals = self.arrivals(for: stop, at: at)
+    public func arrivals(for routes: [Route], stop: Stop, at: Date = Date()) async -> [StopTime] {
+        let stopArrivals = await self.arrivals(for: stop, at: at)
         return stopArrivals.filter({stopTime in
             return routes.contains(where: {route in
                 route.routeId == self.db.trips.byTripID(stopTime.tripId)?.routeId
@@ -188,7 +194,7 @@ public class ArrivalGTFS {
                     noPrevious.append(current)
                     continue
                 }
-            let connection = Connection(start: previous, end: current, trip: self.db.trips.byTripID(current.tripId)!, route: self.db.routes.byRouteID(self.db.trips.byTripID(current.tripId)!.routeId)!)
+            let connection = Connection(start: previous, end: current, tripId:current.tripId, routeId: self.db.trips.byTripID(current.tripId)!.routeId)
                 if (connection.startStation == connection.endStation) {
                   //  print("ERROR", connection.description, current.stopSequence, previous.stopSequence)
                     sameStation.append("\(connection.description), \(current.stopSequence), \(previous.stopSequence)")
@@ -217,7 +223,7 @@ public class ArrivalGTFS {
                     var transferTime: TimeInterval = 60
                     if let transfers = self.db.transfers.byStopID(connection.startStation) {
                        if let transfer = transfers.first(where: {transfer in
-                           return transfer.toRouteID == connection.route.id && transfer.fromRouteID == previous!.route.id
+                           return transfer.toRouteID == connection.routeId && transfer.fromRouteID == previous!.routeId
                        }) {
                            //print("TRANSFER FOUND \(connection.startStation) from \(previous!.routeID) to \(connection.routeID)", transfer.minTransferTime)
                            transferTime = Double(transfer.minTransferTime ?? 20 )
@@ -232,7 +238,7 @@ public class ArrivalGTFS {
                     }
                     
                     //if you're already on the train or the train your on arrives + a buffer before the next connection leaves
-                    if connection.startTime > previous!.endTime + transferTime || connection.trip.tripId == previous!.trip.tripId {
+                    if connection.startTime > previous!.endTime + transferTime || connection.tripId == previous!.tripId {
                         inConnection[connection.endStation] = connection
                        
                     }
@@ -260,9 +266,14 @@ public class ArrivalGTFS {
         var results: [[Connection]] = []
         var i = 0
        
-        var workingStopTimes: [StopTime] = self.db.stopTimes.all
-      // let indexTime = ContinuousClock().measure {
-           let first = workingStopTimes.firstIndex(where: {stopTime in
+        let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
+        
+        var workingStopTimes: [StopTime] = []
+        let indexTime = ContinuousClock().measure {
+        workingStopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + 3))
+        print("initial count", workingStopTimes.count)
+      
+       /*    let first = workingStopTimes.firstIndex(where: {stopTime in
                Date(bartTime: stopTime.departureTime) > at
            }) ?? 0
            let last = workingStopTimes.lastIndex(where: {stopTime in
@@ -270,14 +281,14 @@ public class ArrivalGTFS {
            }) ?? 0
            //print("first index", first, "last index", last)
            workingStopTimes = Array(workingStopTimes.dropLast(workingStopTimes.count - last))
-           workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
+           workingStopTimes = Array(workingStopTimes.dropFirst(first - 0)) */
           
             workingStopTimes = workingStopTimes.filter({stopTime in
                 
                 self.inSerivce(stopTime: stopTime, at: at)
             })
-       // }
-      // print("initial pruning time", indexTime)
+        }
+       print("initial pruning time", indexTime)
         print("working stoptimes count", workingStopTimes.count)
         while (i < count) {
            // let time = await ContinuousClock().measure {

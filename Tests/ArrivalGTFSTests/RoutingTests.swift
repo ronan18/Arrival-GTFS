@@ -9,7 +9,7 @@ import Foundation
 import XCTest
 @testable import ArrivalGTFS
 class RoutingTests: XCTestCase {
-    let agtfs = ArrivalGTFS()
+    let agtfs = ArrivalGTFSCore()
    
     let at = Date(bartTime: "10:00:00")
     func testAllPossibleRoutes() throws {
@@ -81,30 +81,42 @@ class RoutingTests: XCTestCase {
         
         var res: [Connection] = []
         self.measure {
+            let exp = expectation(description: "Finished")
             Task {
                 res = await agtfs.path(from: startStation, to: endStation, at: at, stopTimes: workingStopTimes)
+                exp.fulfill()
             }
+            wait(for: [exp], timeout: 500.0)
         }
         print(trip: res)
     }
     func testFourOptionsSpeed() {
-        var res: [[Connection]] = []
-        let startStation = agtfs.db.stations.byStopID("WARM")!
-        let endStation = agtfs.db.stations.byStopID("SFIA")!
+        
+       
+            var res: [[Connection]] = []
+            let startStation = agtfs.db.stations.byStopID("WARM")!
+            let endStation = agtfs.db.stations.byStopID("SFIA")!
         self.measure {
+        let exp = expectation(description: "Finished")
+  
             Task {
-                res = await agtfs.findPaths(from: startStation, to: endStation, at: at)
+              res = await agtfs.findPaths(from: startStation, to: endStation, at: at)
+                exp.fulfill()
             }
+            wait(for: [exp], timeout: 500.0)
         }
-        res.forEach({trip in
-            guard trip.count >= 1 else {
-                return
-            }
-            print("-------STARTING TRIP at \(trip.first!.startTime.formatted(date: .omitted, time: .shortened)) with \(trip.count) LEGS arrives at \(trip.last!.endTime.formatted(date: .omitted, time: .shortened))--------")
-            trip.forEach({con in
-                print(con.description)
+            res.forEach({trip in
+                guard trip.count >= 1 else {
+                    return
+                }
+                print("-------STARTING TRIP at \(trip.first!.startTime.formatted(date: .omitted, time: .shortened)) with \(trip.count) LEGS arrives at \(trip.last!.endTime.formatted(date: .omitted, time: .shortened))--------")
+                trip.forEach({con in
+                    print(con.description)
+                })
+                print("-------ENDING TRIP with \(trip.count) LEGS--------")
             })
-            print("-------ENDING TRIP with \(trip.count) LEGS--------")
-        })
+        
+            
+        
     }
 }

@@ -14,16 +14,6 @@ class Arrival_GTFSDBTests: XCTestCase {
     var gtfs: GTFS?
     var db: GTFSDB?
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-       /* if self.gtfs == nil || self.db == nil{
-            do {
-                let data = try Data(contentsOf: cachePath)
-                self.gtfs = try JSONDecoder().decode(GTFS.self, from: data)
-                self.db = GTFSDB(from: gtfs!)
-            } catch {
-                print("error generating GTFS from date")
-            }
-        }*/
         
         if self.gtfs == nil || self.db == nil{
             do {
@@ -63,7 +53,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         let data = try JSONEncoder().encode(db)
         
-        try data.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/db.json"))
+        try data.write(to: URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/db/db.json"))
         let bcf = ByteCountFormatter()
                bcf.allowedUnits = [.useMB] // optional: restricts the units to MB only
                bcf.countStyle = .file
@@ -71,6 +61,14 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         print("cached db to json", size)
         
+    }
+    func testdepartureHourTest() throws {
+        let db = StopTimesDB(from: self.gtfs!.stopTimes)
+        let initialByHour = db.byDepartureHour("10")
+        initialByHour.forEach({i in
+            XCTAssertEqual(i.departureTime.prefix(2), "10")
+            print(i.departureTime)
+        })
     }
     
     func testTransfersDB() throws {

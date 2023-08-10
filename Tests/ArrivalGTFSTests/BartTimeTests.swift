@@ -9,7 +9,7 @@ import Foundation
 import XCTest
 @testable import ArrivalGTFS
 class BartTimeTests: XCTestCase {
-    let agtfs = ArrivalGTFS()
+    let agtfs = ArrivalGTFSCore()
     func testTime() throws {
         var formatter = DateFormatter()
         formatter.timeZone = TimeZone(abbreviation: "PST")

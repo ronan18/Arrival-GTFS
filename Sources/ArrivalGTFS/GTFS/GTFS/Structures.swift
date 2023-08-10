@@ -284,9 +284,7 @@ public struct StopTime: Identifiable, Codable, FromCSVLine, Equatable, Hashable 
     public let shapeDistTraveled: Float?
     public let timepoint: Timepoint?
     
-    public var id: String {
-        return self.tripId + stopId + String(stopSequence)
-    }
+    public var id: String
 
     public init(line: CSVLine) {
         tripId = line["trip_id"]!
@@ -299,6 +297,7 @@ public struct StopTime: Identifiable, Codable, FromCSVLine, Equatable, Hashable 
         dropOffType = DropOffType.from(line["drop_off_type"])
         shapeDistTraveled = Float.from(line["shape_dist_traveled"])
         timepoint = Timepoint.from(line["timepoint"])
+        id = self.tripId + stopId + String(stopSequence)
         
     }
 }
@@ -761,20 +760,24 @@ public struct Connection: Codable {
     public let endStation: String
     public let startTime: Date
     public let endTime: Date
-    public let trip: Trip
-    public var route: Route
+    public let startStopTimeId: String
+    public let endStopTimeId: String
+    public let tripId: String
+    public var routeId: String
  
     //let routeID: String
-    public init(start: StopTime, end: StopTime, trip: Trip, route: Route) {
+    public init(start: StopTime, end: StopTime, tripId: String, routeId: String) {
         self.startTime = Date(bartTime: start.departureTime)
         self.endTime = Date(bartTime: end.arrivalTime)
         self.startStation = start.stopId
         self.endStation = end.stopId
-        self.trip = trip
-        self.route = route
+        self.tripId = tripId
+        self.routeId = routeId
+        self.startStopTimeId = start.id
+        self.endStopTimeId = end.id
         
     }
     public var description: String {
-        return "\(self.startStation) at \(self.startTime.formatted(date: .omitted, time: .shortened)) to \(self.endStation) at \(self.endTime.formatted(date: .omitted, time: .shortened)) \(self.route.routeShortName!)"
+        return "\(self.startStation) at \(self.startTime.formatted(date: .omitted, time: .shortened)) to \(self.endStation) at \(self.endTime.formatted(date: .omitted, time: .shortened)) \(self.routeId)"
     }
 }
