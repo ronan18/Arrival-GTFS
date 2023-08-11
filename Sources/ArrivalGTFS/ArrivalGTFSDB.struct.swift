@@ -365,6 +365,44 @@ public struct TripsDB: Codable, Hashable, Equatable {
             })
         })
     }
+    mutating public func insert(_ trip: Trip, stopTimes: [StopTime]) {
+       
+        self.all.append(trip)
+        var inProgress: [String: Int] = [:]
+        var byRouteIDIndex: [String: [Int]] = [:]
+        for i in 0..<self.all.count {
+            let trip = self.all[i]
+            inProgress[trip.tripId] = i
+            if let currentRoute = byRouteIDIndex[trip.routeId] {
+                var currentRouteI = currentRoute
+                currentRouteI.append(i)
+                byRouteIDIndex[trip.routeId] =  currentRouteI
+            } else {
+                byRouteIDIndex[trip.routeId] = [i]
+            }
+        }
+        self.byRouteIDIndex = byRouteIDIndex
+        /*
+         trips.forEach({trip in
+         inProgress[trip.tripId] = trip
+         })*/
+        self.byTripIDIndex = inProgress
+        
+        
+        var byStopID: [String: [Int]] = [:]
+        stopTimes.forEach({stopTime in
+            if let tripForStopTime = inProgress[stopTime.tripId] {
+                var currentIndexed = (byStopID[stopTime.stopId] ?? [])
+                currentIndexed.append(tripForStopTime)
+                byStopID[stopTime.stopId] = currentIndexed
+            }
+            
+        })
+        self.byStopIDIndex = byStopID
+        
+        self.ready = .ready
+        print("trips DB built")
+    }
     
 }
 

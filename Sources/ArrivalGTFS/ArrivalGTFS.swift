@@ -49,39 +49,20 @@ public class ArrivalGTFSCore {
         
         
     }
-
- /*   public func getGTFSRT() async throws {
-        print("fetching gtfs-rt")
-        do {
-            
-            let (data, response) = try await URLSession.shared.data(from: self.gtfsrtURL)
-            print("fetch result", data, response)
-            let feedMessage = try TransitRealtime_FeedMessage(serializedData: data)
-            //print(feedMessage)
-          /*  guard feedMessage.hashValue != self.lastGTFSRTHash else {
-                return
-            }
-            self.lastGTFSRTHash = feedMessage.hashValue
-            */
-            try self.rtDB.updateWithRT(feedMessage)
-            
-            return
-        } catch {
-            print("errpr", error)
-           throw error
-        }
-       
-    }*/
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
         
-        
-        var stopTimes = self.db.stopTimes.byDepartureHour(from:String(self.hour(for: at)), to: String(self.hour(for: at) + 3))
+        var end = String((Int(self.hour(for: at)) ?? 0) + 3)
+        if end.count == 1 {
+            end = "0" + end
+        }
+        var stopTimes = self.db.stopTimes.byDepartureHour(from:self.hour(for: at), to: end)
+       // print("got \(stopTimes.count) stops at \(stop.stopName), ", self.hour(for: at), end)
         stopTimes = stopTimes.filter({stopTime in
             return self.inSerivce(stopTime: stopTime, at: at) && stopTime.stopId == stop.stopId
         })
-       // print("got \(stopTimes.count) stops at \(stop.stopName)")
+       // print("got \(stopTimes.count) stops in service at \(stop.stopName)")
         var stopTimesSorted = stopTimes.sorted(by: {a, b in
             return Date(bartTime: a.arrivalTime) < Date(bartTime: b.arrivalTime)
         })
@@ -98,14 +79,14 @@ public class ArrivalGTFSCore {
         }
         //print("first index \(firstIndex) \(stopTimesSorted.count)", lastIndex)
         let selectedStopTimes = stopTimesSorted[firstIndex..<lastIndex]
-        //print("found \(selectedStopTimes.count) stops")
+       // print("found \(selectedStopTimes.count) stops")
         return Array(selectedStopTimes)
         
     }
-    func hour(for date: Date) -> Int {
+    func hour(for date: Date) -> String {
         let hour = Calendar.current.dateComponents([.hour], from: date).hour ?? 0
        // print("hour for", date.bayTime, hour, Int(date.bayTime.prefix(2)))
-        return Int(date.bayTime.prefix(2)) ?? hour
+        return String(date.bayTime.prefix(2))
     }
 
     func inSerivce(stopTime: StopTime, at: Date) -> Bool {
