@@ -18,11 +18,11 @@ public struct GTFSDB: Codable, Hashable {
     public var trips: TripsDB
     public var stopTimes: StopTimesDB
     public let transfers: TransfersDB
+    public let calendar: GTFSCalendarDB
     
     
     public let agencies: [Agency]
     public let stops: [Stop]
-    public let calendar: GTFSCalendarDB
     public let calendarDates: [CalendarDate]?
     public let fareAttributes: [FareAttribute]?
     public let fareRules: [FareRule]?
@@ -188,7 +188,7 @@ public struct StationsDB: Codable, Hashable, Equatable {
 }
 
 public struct StopTimesDB: Codable, Hashable, Equatable {
-    public let all: [StopTime]
+    public var all: [StopTime]
     
     public var ready: DBReady = .notReady
     
@@ -256,7 +256,7 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     }
     public func byDepartureHour(from: String, to: String) -> [StopTime] {
        
-       
+     //  print("by departure hour", from, to)
         guard let first = self.byDepartureHourIndex[from]?.first else {
             return []
         }
@@ -287,6 +287,14 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
                 return all[i]
             })
         }
+    }
+    
+    mutating
+    public func update(_ stopTime: StopTime) {
+        guard let index = self.stopTimeByIdIndex[stopTime.id] else {
+            return
+        }
+        self.all[index] = stopTime
     }
 }
 

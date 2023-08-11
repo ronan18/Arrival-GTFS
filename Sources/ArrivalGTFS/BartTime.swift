@@ -52,6 +52,13 @@ public extension Date {
     public var bayTime: String {
         var formatter = DateFormatter()
         formatter.timeZone = TimeZone(abbreviation: "PST")
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter.string(for: self) ?? ""
+    }
+    public var bayTimeFull: String {
+        var formatter = DateFormatter()
+        formatter.timeZone = TimeZone(abbreviation: "PST")
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(for: self) ?? ""

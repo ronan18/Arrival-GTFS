@@ -75,14 +75,11 @@ public class ArrivalGTFSCore {
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
-        guard var stopTimes = self.db.stopTimes.byStopID(stop.stopId) else {
-            return []
-        }
-        let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
         
-        stopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + 3))
+        
+        var stopTimes = self.db.stopTimes.byDepartureHour(from:String(self.hour(for: at)), to: String(self.hour(for: at) + 3))
         stopTimes = stopTimes.filter({stopTime in
-            return self.inSerivce(stopTime: stopTime, at: at)
+            return self.inSerivce(stopTime: stopTime, at: at) && stopTime.stopId == stop.stopId
         })
        // print("got \(stopTimes.count) stops at \(stop.stopName)")
         var stopTimesSorted = stopTimes.sorted(by: {a, b in
@@ -94,11 +91,21 @@ public class ArrivalGTFSCore {
         }) else {
             return []
         }
-       // print("first index \(firstIndex) \(stopTimes[firstIndex])")
-        let selectedStopTimes = stopTimesSorted[firstIndex..<firstIndex + defaultResultLength]
+       
+        var lastIndex = firstIndex + defaultResultLength
+        if lastIndex > stopTimesSorted.count - 1 {
+            lastIndex = stopTimesSorted.count - 1
+        }
+        //print("first index \(firstIndex) \(stopTimesSorted.count)", lastIndex)
+        let selectedStopTimes = stopTimesSorted[firstIndex..<lastIndex]
         //print("found \(selectedStopTimes.count) stops")
         return Array(selectedStopTimes)
         
+    }
+    func hour(for date: Date) -> Int {
+        let hour = Calendar.current.dateComponents([.hour], from: date).hour ?? 0
+       // print("hour for", date.bayTime, hour, Int(date.bayTime.prefix(2)))
+        return Int(date.bayTime.prefix(2)) ?? hour
     }
 
     func inSerivce(stopTime: StopTime, at: Date) -> Bool {
