@@ -366,11 +366,13 @@ public struct TripsDB: Codable, Hashable, Equatable {
         })
     }
     mutating public func insert(_ trip: Trip, stopTimes: [StopTime]) {
-       
+        guard !self.all.contains(trip) else {
+            return
+        }
         self.all.append(trip)
-        var inProgress: [String: Int] = [:]
+        var inProgress: [String: Int] =  self.byTripIDIndex
         var byRouteIDIndex: [String: [Int]] = [:]
-        for i in 0..<self.all.count {
+       var  i = self.all.count - 1
             let trip = self.all[i]
             inProgress[trip.tripId] = i
             if let currentRoute = byRouteIDIndex[trip.routeId] {
@@ -380,7 +382,7 @@ public struct TripsDB: Codable, Hashable, Equatable {
             } else {
                 byRouteIDIndex[trip.routeId] = [i]
             }
-        }
+        
         self.byRouteIDIndex = byRouteIDIndex
         /*
          trips.forEach({trip in
@@ -389,8 +391,11 @@ public struct TripsDB: Codable, Hashable, Equatable {
         self.byTripIDIndex = inProgress
         
         
-        var byStopID: [String: [Int]] = [:]
+        var byStopID: [String: [Int]] = self.byStopIDIndex
         stopTimes.forEach({stopTime in
+            guard stopTime.tripId == trip.tripId else {
+                return
+            }
             if let tripForStopTime = inProgress[stopTime.tripId] {
                 var currentIndexed = (byStopID[stopTime.stopId] ?? [])
                 currentIndexed.append(tripForStopTime)
@@ -401,7 +406,7 @@ public struct TripsDB: Codable, Hashable, Equatable {
         self.byStopIDIndex = byStopID
         
         self.ready = .ready
-        print("trips DB built")
+        print("TRIPS DB: inserted \(trip.tripId)")
     }
     
 }
