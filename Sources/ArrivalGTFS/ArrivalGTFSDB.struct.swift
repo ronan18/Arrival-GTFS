@@ -31,7 +31,7 @@ public struct GTFSDB: Codable, Hashable {
     public let feedInformation: [FeedInfo]?
     
     public init(from gtfs: GTFS) {
-        print(FileManager.default.currentDirectoryPath)
+       
         print("init DB")
         self.agencies = gtfs.agencies
         self.stops = gtfs.stops
@@ -472,4 +472,45 @@ public struct RoutesDB: Codable, Hashable, Equatable {
 public enum DBReady: Codable, Hashable, Equatable {
     case notReady
     case ready
+}
+
+public func saveDBToFile(_ db: GTFSDB, container: URL = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/dbjsons", isDirectory: true)) throws {
+    
+    do {
+        try writeToFile(data: db.agencies, container: container, file: "agencies.json")
+        try writeToFile(data: db.calendar, container: container, file: "calendar.json")
+        try writeToFile(data: db.calendarDates, container: container, file: "calendarDates.json")
+        try writeToFile(data: db.dbVID, container: container, file: "dbVID.json")
+        try writeToFile(data: db.fareAttributes, container: container, file: "fareAttributes.json")
+        try writeToFile(data: db.fareRules, container: container, file: "fareRules.json")
+        try writeToFile(data: db.feedInformation, container: container, file: "feedInformation.json")
+        try writeToFile(data: db.frequencies, container: container, file: "frequencies.json")
+        try writeToFile(data: db.routes, container: container, file: "routes.json")
+        try writeToFile(data: db.stations, container: container, file: "stations.json")
+        try writeToFile(data: db.stopTimes.all, container: container, file: "stopTimesAll.json")
+        try writeToFile(data: db.stops, container: container, file: "stops.json")
+        try writeToFile(data: db.transfers, container: container, file: "transfers.json")
+        try writeToFile(data: db.trips, container: container, file: "trips.json")
+    } catch {
+        print(error)
+    }
+   
+}
+
+func writeToFile(data: any Codable, container: URL, file: String ) throws {
+    do {
+        
+        let data = try JSONEncoder().encode(data)
+        
+        try data.write(to: container.appending(path: file))
+        let bcf = ByteCountFormatter()
+        bcf.allowedUnits = [.useMB] // optional: restricts the units to MB only
+        bcf.countStyle = .file
+        let size = bcf.string(fromByteCount: Int64(data.count))
+        
+        print("cached \(file) to json", size)
+    } catch {
+        print(error)
+        throw error
+    }
 }

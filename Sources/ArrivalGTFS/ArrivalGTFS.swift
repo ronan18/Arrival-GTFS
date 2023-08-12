@@ -14,9 +14,9 @@ public class ArrivalGTFSCore {
     
     public init() {
        
-        let data = try! Data(contentsOf: dbCachePath)
-        self.db = try! JSONDecoder().decode(GTFSDB.self, from: data)
-      
+    //    let data = try! Data(contentsOf: dbCachePath)
+      //  self.db = try! JSONDecoder().decode(GTFSDB.self, from: data)
+        self.db = GTFSDB(from: GTFS())
       
     }
     

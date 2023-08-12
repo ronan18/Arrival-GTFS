@@ -47,6 +47,36 @@ public class GTFS: Codable {
         self.shapes = nil
     
     }
+    public init() {
+        /// Required
+       
+        self.agencies = try! initializeFile(Bundle.module.url(forResource: "agency", withExtension: "txt")!)
+        self.stops = try! initializeFile( Bundle.module.url(forResource: "stops", withExtension: "txt")!)
+        self.routes = try! initializeFile(Bundle.module.url(forResource: "routes", withExtension: "txt")!)
+        self.trips = try! initializeFile(Bundle.module.url(forResource: "trips", withExtension: "txt")!)
+        self.stopTimes = try! initializeFile(Bundle.module.url(forResource: "stop_times", withExtension: "txt")!)
+        
+        /// Conditionally required and optional
+        self.calendar = initializeOptionalFile(Bundle.module.url(forResource: "calendar", withExtension: "txt")!)
+        self.calendarDates = initializeOptionalFile(Bundle.module.url(forResource: "calendar_dates", withExtension: "txt")!)
+        self.fareAttributes = initializeOptionalFile(Bundle.module.url(forResource: "fare_attributes", withExtension: "txt")!)
+        self.fareRules = initializeOptionalFile(Bundle.module.url(forResource: "fare_rules", withExtension: "txt")!)
+        //self.shapes = initializeOptionalFile(url.appendingPathComponent("shapes.txt"))
+       // self.frequencies = initializeOptionalFile(Bundle.module.url(forResource: "frequencies", withExtension: "txt")!)
+        self.transfers = initializeOptionalFile(Bundle.module.url(forResource: "transfers", withExtension: "txt")!)
+        //self.pathways = initializeOptionalFile(url.appendingPathComponent("pathways.txt"))
+//        self.levels = initializeOptionalFile(Bundle.module.url(forResource: "levels", withExtension: "txt")!)
+        self.feedInformation = initializeOptionalFile(Bundle.module.url(forResource: "feed_info", withExtension: "txt")!)
+       // self.translations = initializeOptionalFile(url.appendingPathComponent("translations.txt"))
+//        self.attributions = initializeOptionalFile(Bundle.module.url(forResource: "attributions", withExtension: "txt")!)
+        self.translations = nil
+        self.pathways = nil
+        self.shapes = nil
+        self.frequencies = nil
+        self.levels = nil
+        self.attributions = nil
+    }
+    
 }
 
 func initializeFile<T: FromCSVLine>(_ path: URL) throws -> [T] {

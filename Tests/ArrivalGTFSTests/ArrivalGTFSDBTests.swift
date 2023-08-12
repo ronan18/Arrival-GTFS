@@ -46,7 +46,7 @@ class Arrival_GTFSDBTests: XCTestCase {
     }
     func testDBInitializer() throws {
         print("test DB Intalizer")
-        let db = GTFSDB(from: gtfs!)
+        let db = GTFSDB(from: GTFS())
         XCTAssertFalse(db.trips.all.isEmpty)
         let tripsForLake = (db.trips.byStopID("LAKE")) ?? []
         XCTAssertFalse(tripsForLake.isEmpty)
@@ -60,6 +60,10 @@ class Arrival_GTFSDBTests: XCTestCase {
                let size = bcf.string(fromByteCount: Int64(data.count))
         
         print("cached db to json", size)
+        
+        try saveDBToFile(db)
+        
+        
         
     }
     func testdepartureHourTest() throws {
