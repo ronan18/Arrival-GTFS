@@ -6,7 +6,7 @@ public class ArrivalGTFSCore {
     private let gftsURL = URL(string: "https://www.bart.gov/dev/schedules/google_transit.zip")!
     private let gtfsrtURL = URL(string: "http://api.bart.gov/gtfsrt/tripupdate.aspx")!
     private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_20230213-20230813_v7.json")
-    private let dbCachePath = Bundle.module.url(forResource: "db", withExtension: "json")!
+   // private let dbCachePath = Bundle.module.url(forResource: "db", withExtension: "json")!
     private var lastGTFSRTHash: Int? = nil
     public var db: GTFSDB
   
