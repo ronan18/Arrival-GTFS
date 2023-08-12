@@ -27,7 +27,7 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
-            name: "ArrivalGTFS", dependencies: [.product(name: "SwiftProtobuf", package: "swift-protobuf")]),
+            name: "ArrivalGTFS", dependencies: [.product(name: "SwiftProtobuf", package: "swift-protobuf")], resources: [.process("db/db.json"), .process("db/google_transit_20230213-20230813_v7.json")]),
           
         .testTarget(
             name: "ArrivalGTFSTests",

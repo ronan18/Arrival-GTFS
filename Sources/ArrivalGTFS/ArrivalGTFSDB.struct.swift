@@ -31,6 +31,7 @@ public struct GTFSDB: Codable, Hashable {
     public let feedInformation: [FeedInfo]?
     
     public init(from gtfs: GTFS) {
+        print(FileManager.default.currentDirectoryPath)
         print("init DB")
         self.agencies = gtfs.agencies
         self.stops = gtfs.stops

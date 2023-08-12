@@ -32,6 +32,7 @@ class Arrival_GTFSTests: XCTestCase {
         // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
     }
     func testReadPrebuiltData() throws {
+        
         XCTAssertNoThrow(try agtfs.readPrebuilt())
     }
     func testGTFSRTFetch() async throws {
