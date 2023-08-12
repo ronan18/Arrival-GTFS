@@ -473,7 +473,7 @@ public enum DBReady: Codable, Hashable, Equatable {
     case notReady
     case ready
 }
-
+/*
 public func saveDBToFile(_ db: GTFSDB, container: URL = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/dbjsons", isDirectory: true)) throws {
     
     do {
@@ -495,9 +495,9 @@ public func saveDBToFile(_ db: GTFSDB, container: URL = URL(fileURLWithPath: "/U
         print(error)
     }
    
-}
+}*/
 
-func writeToFile(data: any Codable, container: URL, file: String ) throws {
+/*func writeToFile(data: any Codable, container: URL, file: String ) throws {
     do {
         
         let data = try JSONEncoder().encode(data)
@@ -514,3 +514,4 @@ func writeToFile(data: any Codable, container: URL, file: String ) throws {
         throw error
     }
 }
+*/

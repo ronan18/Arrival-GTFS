@@ -61,7 +61,7 @@ class Arrival_GTFSDBTests: XCTestCase {
         
         print("cached db to json", size)
         
-        try saveDBToFile(db)
+       // try saveDBToFile(db)
         
         
         
