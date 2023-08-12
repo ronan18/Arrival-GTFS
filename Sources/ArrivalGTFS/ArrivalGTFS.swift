@@ -258,11 +258,16 @@ public class ArrivalGTFSCore {
         var results: [[Connection]] = []
         var i = 0
        
-        let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
         
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "hh"
+        dateFormatter.timeZone = .init(identifier: "PST")
+       // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
+        let hour = dateFormatter.string(from: at)
+       // print(at.bayTime, hour)
         var workingStopTimes: [StopTime] = []
         let indexTime = ContinuousClock().measure {
-        workingStopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + 3))
+        workingStopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + String(3)))
         print("initial count", workingStopTimes.count)
       
        /*    let first = workingStopTimes.firstIndex(where: {stopTime in
