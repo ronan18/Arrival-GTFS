@@ -778,7 +778,7 @@ public struct Connection: Codable {
         
     }
     public var description: String {
-        return "\(self.startStation) at \(self.startTime.formatted(date: Date.FormatStyle.DateStyle.omitted, time: Date.FormatStyle.TimeStyle.shortened)) to \(self.endStation) at \(self.endTime.formatted(date: Date.FormatStyle.DateStyle.omitted, time: Date.FormatStyle.TimeStyle.shortened)) \(self.routeId)"
+       // return "\(self.startStation) at \(self.startTime.formatted(date: Date.FormatStyle.DateStyle.omitted, time: Date.FormatStyle.TimeStyle.shortened)) to \(self.endStation) at \(self.endTime.formatted(date: Date.FormatStyle.DateStyle.omitted, time: Date.FormatStyle.TimeStyle.shortened)) \(self.routeId)"
         return ""
     }
 }
