@@ -297,6 +297,17 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
         }
         self.all[index] = stopTime
     }
+    
+    mutating func insert(_ stopTime: StopTime) {
+        var all = self.all
+        all.append(stopTime)
+        self = .init(from: all)
+    }
+    mutating func insert(_ stopTimes: [StopTime]) {
+        var all = self.all
+        all.append(contentsOf: stopTimes)
+        self = .init(from: all)
+    }
 }
 
 public struct TripsDB: Codable, Hashable, Equatable {
