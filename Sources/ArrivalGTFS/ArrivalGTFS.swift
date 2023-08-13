@@ -87,8 +87,16 @@ public class ArrivalGTFSCore {
         
     }
     func hour(for date: Date) -> String {
-        let hour = Calendar.current.dateComponents([.hour], from: date).hour ?? 0
-        print("hour for", date.bayTime, hour, Int(date.bayTime.prefix(2)))
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "hh"
+        dateFormatter.timeZone = .init(identifier: "PST")
+       // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
+        var hour = dateFormatter.string(from: date)
+        if (hour.count == 1) {
+            hour = "0"+hour
+        }
+        print("hour for from dateformatter", date.bayTime, hour, Int(date.bayTime.prefix(2)))
         return String(date.bayTime.prefix(2))
     }
 
