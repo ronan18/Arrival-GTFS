@@ -101,8 +101,8 @@ public class ArrivalGTFSCore {
         if (hour.count == 1) {
             hour = "0"+hour
         }
-        print("hour for from dateformatter", date.bayTime, hour, Int(date.bayTime.prefix(2)))
-        return String(date.bayTime.prefix(2))
+        print("hour for from dateformatter",date, date.bayTime, hour)
+        return hour
     }
 
     func inSerivce(stopTime: StopTime, at: Date) -> Bool {
