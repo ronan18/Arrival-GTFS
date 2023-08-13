@@ -55,22 +55,22 @@ public class ArrivalGTFSCore {
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
-        
+        print("arrival for", stop, "at", at.formatted())
         var end = String((Int(self.hour(for: at)) ?? 0) + 3)
         if end.count == 1 {
             end = "0" + end
         }
         var stopTimes = self.db.stopTimes.byDepartureHour(from:self.hour(for: at), to: end)
-       // print("got \(stopTimes.count) stops at \(stop.stopName), ", self.hour(for: at), end)
+       print("got \(stopTimes.count) stops at \(stop.stopName), ", self.hour(for: at), end)
         stopTimes = stopTimes.filter({stopTime in
             return self.inSerivce(stopTime: stopTime, at: at) && stopTime.stopId == stop.stopId
         })
-       // print("got \(stopTimes.count) stops in service at \(stop.stopName)")
+        print("got \(stopTimes.count) stops in service at \(stop.stopName)")
         var stopTimesSorted = stopTimes.sorted(by: {a, b in
             return Date(bartTime: a.arrivalTime) < Date(bartTime: b.arrivalTime)
         })
         guard let firstIndex = stopTimesSorted.firstIndex(where: {stopTime in
-            //print(stopTime.arrivalTime.formatted(), "vs", at.formatted() )
+                //print(stopTime.arrivalTime.formatted(), "vs", at.formatted() )
             return Date(bartTime: stopTime.arrivalTime) >= at
         }) else {
             return []
@@ -80,15 +80,15 @@ public class ArrivalGTFSCore {
         if lastIndex > stopTimesSorted.count - 1 {
             lastIndex = stopTimesSorted.count - 1
         }
-        //print("first index \(firstIndex) \(stopTimesSorted.count)", lastIndex)
+        print("first index \(firstIndex) \(stopTimesSorted.count)", lastIndex)
         let selectedStopTimes = stopTimesSorted[firstIndex..<lastIndex]
-       // print("found \(selectedStopTimes.count) stops")
+       print("found \(selectedStopTimes.count) stops")
         return Array(selectedStopTimes)
         
     }
     func hour(for date: Date) -> String {
         let hour = Calendar.current.dateComponents([.hour], from: date).hour ?? 0
-       // print("hour for", date.bayTime, hour, Int(date.bayTime.prefix(2)))
+        print("hour for", date.bayTime, hour, Int(date.bayTime.prefix(2)))
         return String(date.bayTime.prefix(2))
     }
 
