@@ -239,7 +239,7 @@ public class ArrivalGTFSCore {
                     }
                     
                     //if you're already on the train or the train your on arrives + a buffer before the next connection leaves
-                    if connection.startTime > previous!.endTime + transferTime || connection.tripId == previous!.tripId {
+                    if connection.startTime > previous!.endTime + transferTime + 60 || connection.tripId == previous!.tripId {
                         inConnection[connection.endStation] = connection
                        
                     }
@@ -266,7 +266,7 @@ public class ArrivalGTFSCore {
         var at = at
         var results: [[Connection]] = []
         var i = 0
-       
+       let time = Date()
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "hh"
@@ -296,7 +296,8 @@ public class ArrivalGTFSCore {
         }
        print("initial pruning time", indexTime)
         print("working stoptimes count", workingStopTimes.count)
-        while (i < count) {
+        var byArrivalTimeRes: [TimeInterval: [Connection]] = [:]
+        while (byArrivalTimeRes.values.count < count) {
            // let time = await ContinuousClock().measure {
                 let first = workingStopTimes.firstIndex(where: {time in
                     Date(bartTime: time.departureTime) > at
@@ -304,9 +305,12 @@ public class ArrivalGTFSCore {
                 workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
                 //print("working stoptimes count", workingStopTimes.count, first)
                 let res = await path(from: from, to: to, at: at, stopTimes: workingStopTimes)
+            if let last = res.last {
+                byArrivalTimeRes[last.endTime.timeIntervalSince1970] = res
                 results.append(res)
+            }
                 if let first = res.first?.startTime {
-                    at = Date(timeInterval: 60, since: first)
+                    at = Date(timeInterval: 30, since: first)
                 } else {
                     i = count
                 }
@@ -317,7 +321,8 @@ public class ArrivalGTFSCore {
             
             
         }
-        return results
+        print("plan creation time", Date().timeIntervalSince(time))
+        return Array(byArrivalTimeRes.values)
     }
     
     
