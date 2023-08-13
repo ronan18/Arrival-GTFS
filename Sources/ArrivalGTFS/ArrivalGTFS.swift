@@ -55,7 +55,7 @@ public class ArrivalGTFSCore {
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
-        print("arrival for", stop, "at", at.formatted())
+        print("arrival for", stop, "at", at)
         var end = String((Int(self.hour(for: at)) ?? 0) + 3)
         if end.count == 1 {
             end = "0" + end
