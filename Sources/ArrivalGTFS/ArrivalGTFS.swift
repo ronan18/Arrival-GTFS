@@ -55,8 +55,13 @@ public class ArrivalGTFSCore {
     
     
     public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
-        print("arrival for", stop, "at", at)
-        var end = String((Int(self.hour(for: at)) ?? 0) + 3)
+        print("arrival for", stop.stopId, "at", at)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "hh"
+        dateFormatter.timeZone = .init(identifier: "PST")
+       // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
+        var singleHour = dateFormatter.string(from: at)
+        var end = String((Int(singleHour) ?? 0) + 3)
         if end.count == 1 {
             end = "0" + end
         }
