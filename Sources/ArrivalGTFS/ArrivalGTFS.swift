@@ -56,12 +56,8 @@ public class ArrivalGTFSCore {
     
     public func arrivals(for stop: Stop, at: Date = Date()) async -> [StopTime] {
         print("arrival for", stop.stopId, "at", at)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "hh"
-        dateFormatter.timeZone = .init(identifier: "PST")
-       // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
-        var singleHour = dateFormatter.string(from: at)
-        var end = String((Int(singleHour) ?? 0) + 3)
+        
+        var end = String((Int(self.hour(for: at)) ?? 0) + 3)
         if end.count == 1 {
             end = "0" + end
         }
@@ -71,7 +67,7 @@ public class ArrivalGTFSCore {
             return self.inSerivce(stopTime: stopTime, at: at) && stopTime.stopId == stop.stopId
         })
         print("got \(stopTimes.count) stops in service at \(stop.stopName)")
-        var stopTimesSorted = stopTimes.sorted(by: {a, b in
+        let stopTimesSorted = stopTimes.sorted(by: {a, b in
             return Date(bartTime: a.arrivalTime) < Date(bartTime: b.arrivalTime)
         })
         guard let firstIndex = stopTimesSorted.firstIndex(where: {stopTime in
@@ -94,8 +90,8 @@ public class ArrivalGTFSCore {
     func hour(for date: Date) -> String {
         
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "hh"
-        dateFormatter.timeZone = .init(identifier: "PST")
+        dateFormatter.dateFormat = "HH"
+        dateFormatter.timeZone = .init(abbreviation: "PST")
        // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
         var hour = dateFormatter.string(from: date)
         if (hour.count == 1) {
