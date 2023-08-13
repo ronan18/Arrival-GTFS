@@ -297,7 +297,7 @@ public class ArrivalGTFSCore {
        print("initial pruning time", indexTime)
         print("working stoptimes count", workingStopTimes.count)
         var byArrivalTimeRes: [TimeInterval: [Connection]] = [:]
-        while (byArrivalTimeRes.values.count < count) {
+        while (byArrivalTimeRes.values.count < count && Date().timeIntervalSince(time) < 1) {
            // let time = await ContinuousClock().measure {
                 let first = workingStopTimes.firstIndex(where: {time in
                     Date(bartTime: time.departureTime) > at
