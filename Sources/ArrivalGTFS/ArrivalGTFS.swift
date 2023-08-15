@@ -66,14 +66,15 @@ public class ArrivalGTFSCore {
         stopTimes = stopTimes.filter({stopTime in
             return self.inSerivce(stopTime: stopTime, at: at) && stopTime.stopId == stop.stopId
         })
-        print("got \(stopTimes.count) stops in service at \(stop.stopName)")
+        print("got \(stopTimes.count) stoptimes in service at \(stop.stopName)")
         let stopTimesSorted = stopTimes.sorted(by: {a, b in
             return Date(bartTime: a.arrivalTime) < Date(bartTime: b.arrivalTime)
         })
         guard let firstIndex = stopTimesSorted.firstIndex(where: {stopTime in
-                //print(stopTime.arrivalTime.formatted(), "vs", at.formatted() )
+            print(stopTime.arrivalTime, "vs", at.bayTime )
             return Date(bartTime: stopTime.arrivalTime) >= at
         }) else {
+            print("no first index greater than time, ", at, at.bayTime, stopTimesSorted.first, stopTimesSorted.last)
             return []
         }
        
