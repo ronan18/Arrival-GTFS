@@ -299,13 +299,19 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     }
     
     mutating public func insert(_ stopTime: StopTime) {
+        guard !self.all.contains(stopTime) else {
+            return
+        }
         var all = self.all
         all.append(stopTime)
         self = .init(from: all)
     }
     mutating public func insert(_ stopTimes: [StopTime]) {
+        
         var all = self.all
-        all.append(contentsOf: stopTimes)
+        all.append(contentsOf: stopTimes.filter({time in
+            return !self.all.contains(time)
+        }))
         self = .init(from: all)
     }
 }
