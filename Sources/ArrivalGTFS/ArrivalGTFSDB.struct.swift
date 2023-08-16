@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import CryptoKit
 //import GTFS
 
-public struct GTFSDB: Codable, Hashable {
+public struct GTFSDB: Codable, Hashable, Signable {
     
     public var dbVID: String
     
@@ -118,7 +119,7 @@ public enum RTUpdateError: Error {
     case specifiedTripDoesntExist
     case noStopTimesExist
 }
-public struct TransfersDB: Codable, Hashable, Equatable {
+public struct TransfersDB: Codable, Hashable, Equatable, Signable {
     public let all: [Transfer]
     private let byStopIDIndex: [String: [Int]]
     public init(from transfers: [Transfer]) {
@@ -141,7 +142,7 @@ public struct TransfersDB: Codable, Hashable, Equatable {
         })
     }
 }
-public struct GTFSCalendarDB: Codable, Hashable, Equatable {
+public struct GTFSCalendarDB: Codable, Hashable, Equatable, Signable {
     public let all: [GTFSCalendar]
     private let byServiceIDIndex: [String: Int]
     public init(from calendars: [GTFSCalendar]) {
@@ -161,7 +162,7 @@ public struct GTFSCalendarDB: Codable, Hashable, Equatable {
         return all[index]
     }
 }
-public struct StationsDB: Codable, Hashable, Equatable {
+public struct StationsDB: Codable, Hashable, Equatable, Signable {
     public let all: [Stop]
     private let byStopIDIndex: [String: Int]
     public var ready: DBReady = .ready
@@ -188,7 +189,7 @@ public struct StationsDB: Codable, Hashable, Equatable {
     }
 }
 
-public struct StopTimesDB: Codable, Hashable, Equatable {
+public struct StopTimesDB: Codable, Hashable, Equatable, Signable {
     public var all: [StopTime]
     
     public var ready: DBReady = .notReady
@@ -316,7 +317,7 @@ public struct StopTimesDB: Codable, Hashable, Equatable {
     }
 }
 
-public struct TripsDB: Codable, Hashable, Equatable {
+public struct TripsDB: Codable, Hashable, Equatable, Signable {
     public var all: [Trip]
     
     private var byTripIDIndex: [String: Int]
@@ -429,7 +430,9 @@ public struct TripsDB: Codable, Hashable, Equatable {
     
 }
 
-public struct RoutesDB: Codable, Hashable, Equatable {
+public struct RoutesDB: Codable, Hashable, Equatable, Signable{
+   
+    
     public var all: [Route]
     
     private var byRouteIDIndex: [String: Int]
@@ -489,6 +492,20 @@ public struct RoutesDB: Codable, Hashable, Equatable {
 public enum DBReady: Codable, Hashable, Equatable {
     case notReady
     case ready
+}
+
+public protocol Signable: Codable {
+    func signature() -> Int
+}
+public extension Signable {
+     func signature() -> Int {
+        guard let data = try? JSONEncoder().encode(self) else  {
+        return 0
+        }
+        let hash = SHA256.hash(data: data)
+        return hash.hashValue
+            
+    }
 }
 /*
 public func saveDBToFile(_ db: GTFSDB, container: URL = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/dbjsons", isDirectory: true)) throws {
