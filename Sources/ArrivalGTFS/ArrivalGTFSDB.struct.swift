@@ -502,26 +502,42 @@ public extension Signable {
         guard let data = try? JSONEncoder().encode(self) else  {
         return ""
         }
-         return MD5(string: data.base64EncodedString()).base64EncodedString()
+         return sha256(str: data.base64EncodedString())
             
     }
 }
-func MD5(string: String) -> Data {
-        let length = Int(CC_MD5_DIGEST_LENGTH)
-        let messageData = string.data(using:.utf8)!
-        var digestData = Data(count: length)
-
-        _ = digestData.withUnsafeMutableBytes { digestBytes -> UInt8 in
-            messageData.withUnsafeBytes { messageBytes -> UInt8 in
-                if let messageBytesBaseAddress = messageBytes.baseAddress, let digestBytesBlindMemory = digestBytes.bindMemory(to: UInt8.self).baseAddress {
-                    let messageLength = CC_LONG(messageData.count)
-                    CC_MD5(messageBytesBaseAddress, messageLength, digestBytesBlindMemory)
-                }
-                return 0
-            }
+func sha256(str: String) -> String {
+ 
+    if let strData = str.data(using: String.Encoding.utf8) {
+        /// #define CC_SHA256_DIGEST_LENGTH     32
+        /// Creates an array of unsigned 8 bit integers that contains 32 zeros
+        var digest = [UInt8](repeating: 0, count:Int(CC_SHA256_DIGEST_LENGTH))
+ 
+        /// CC_SHA256 performs digest calculation and places the result in the caller-supplied buffer for digest (md)
+        /// Takes the strData referenced value (const unsigned char *d) and hashes it into a reference to the digest parameter.
+        strData.withUnsafeBytes {
+            // CommonCrypto
+            // extern unsigned char *CC_SHA256(const void *data, CC_LONG len, unsigned char *md)  -|
+            // OpenSSL                                                                             |
+            // unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)        <-|
+            CC_SHA256($0.baseAddress, UInt32(strData.count), &digest)
         }
-        return digestData
+ 
+        var sha256String = ""
+        /// Unpack each byte in the digest array and add them to the sha256String
+        for byte in digest {
+            sha256String += String(format:"%02x", UInt8(byte))
+        }
+ 
+        if sha256String.uppercased() == "E8721A6EBEA3B23768D943D075035C7819662B581E487456FDB1A7129C769188" {
+            print("Matching sha256 hash: E8721A6EBEA3B23768D943D075035C7819662B581E487456FDB1A7129C769188")
+        } else {
+            print("sha256 hash does not match: \(sha256String)")
+        }
+        return sha256String
     }
+    return ""
+}
 
 /*
 public func saveDBToFile(_ db: GTFSDB, container: URL = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/dbjsons", isDirectory: true)) throws {
