@@ -5,7 +5,7 @@ import Foundation
 public class ArrivalGTFSCore {
     private let gftsURL = URL(string: "https://www.bart.gov/dev/schedules/google_transit.zip")!
     private let gtfsrtURL = URL(string: "http://api.bart.gov/gtfsrt/tripupdate.aspx")!
-    private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_20230213-20230813_v7.json")
+    private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_lts.json")
    // private let dbCachePath = Bundle.module.url(forResource: "db", withExtension: "json")!
     private var lastGTFSRTHash: Int? = nil
     public var db: GTFSDB
@@ -33,7 +33,7 @@ public class ArrivalGTFSCore {
     }
     public func build() throws {
         do {
-            let gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db/google_transit_20230213-20230813_v7")
+            let gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/iOS/Arrival-GTFS/db/google_transit_lts")
             //print("built gtfs", gtfs, gtfs.routes)
             
             let data = try JSONEncoder().encode(gtfs)

@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import CommonCrypto
+import CryptoKit
 //import GTFS
 
-public struct GTFSDB: Codable, Hashable, Signable {
+public struct GTFSDB: Codable, Hashable {
     
     public var dbVID: String
     
@@ -120,6 +120,10 @@ public enum RTUpdateError: Error {
     case noStopTimesExist
 }
 public struct TransfersDB: Codable, Hashable, Equatable, Signable {
+    public func signature() -> String {
+        return getSignature(data: self.all)
+    }
+    
     public let all: [Transfer]
     private let byStopIDIndex: [String: [Int]]
     public init(from transfers: [Transfer]) {
@@ -143,6 +147,10 @@ public struct TransfersDB: Codable, Hashable, Equatable, Signable {
     }
 }
 public struct GTFSCalendarDB: Codable, Hashable, Equatable, Signable {
+    public func signature() -> String {
+        return getSignature(data: self.all)
+    }
+    
     public let all: [GTFSCalendar]
     private let byServiceIDIndex: [String: Int]
     public init(from calendars: [GTFSCalendar]) {
@@ -163,6 +171,9 @@ public struct GTFSCalendarDB: Codable, Hashable, Equatable, Signable {
     }
 }
 public struct StationsDB: Codable, Hashable, Equatable, Signable {
+    public func signature() -> String {
+        return getSignature(data: self.all)
+    }
     public let all: [Stop]
     private let byStopIDIndex: [String: Int]
     public var ready: DBReady = .ready
@@ -190,6 +201,9 @@ public struct StationsDB: Codable, Hashable, Equatable, Signable {
 }
 
 public struct StopTimesDB: Codable, Hashable, Equatable, Signable {
+    public func signature() -> String {
+        return getSignature(data: self.all)
+    }
     public var all: [StopTime]
     
     public var ready: DBReady = .notReady
@@ -318,6 +332,9 @@ public struct StopTimesDB: Codable, Hashable, Equatable, Signable {
 }
 
 public struct TripsDB: Codable, Hashable, Equatable, Signable {
+    public func signature() -> String {
+        return getSignature(data: self.all)
+    }
     public var all: [Trip]
     
     private var byTripIDIndex: [String: Int]
@@ -431,6 +448,9 @@ public struct TripsDB: Codable, Hashable, Equatable, Signable {
 }
 
 public struct RoutesDB: Codable, Hashable, Equatable, Signable{
+    public func signature() -> String {
+        return getSignature(data: self.all)
+    }
    
     
     public var all: [Route]
@@ -495,17 +515,19 @@ public enum DBReady: Codable, Hashable, Equatable {
 }
 
 public protocol Signable: Codable {
+    
     func signature() -> String
 }
-public extension Signable {
-     func signature() -> String {
-        guard let data = try? JSONEncoder().encode(self) else  {
-        return ""
-        }
-         return sha256(str: data.base64EncodedString())
-            
-    }
+
+func getSignature(data: Codable) -> String {
+   guard let data = try? JSONEncoder().encode(data) else  {
+   return ""
+   }
+    return String(Insecure.MD5.hash(data: data).hashValue)
+   // return sha256(str: data.base64EncodedString())
+       
 }
+/*
 func sha256(str: String) -> String {
  
     if let strData = str.data(using: String.Encoding.utf8) {
@@ -537,7 +559,7 @@ func sha256(str: String) -> String {
         return sha256String
     }
     return ""
-}
+}*/
 
 /*
 public func saveDBToFile(_ db: GTFSDB, container: URL = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/dbjsons", isDirectory: true)) throws {

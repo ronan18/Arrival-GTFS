@@ -10,14 +10,14 @@ import XCTest
 @testable import ArrivalGTFS
 
 class Arrival_GTFSDBTests: XCTestCase {
-    private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_20230213-20230813_v7.json")
+    private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_lts.json")
     var gtfs: GTFS?
     var db: GTFSDB?
     override func setUpWithError() throws {
         
         if self.gtfs == nil || self.db == nil{
             do {
-                self.gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_20230213-20230813_v7")
+                self.gtfs = try GTFS(path: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_lts")
                 print("built gtfs", gtfs, gtfs!.routes.count)
                 
                 let data = try JSONEncoder().encode(gtfs)
