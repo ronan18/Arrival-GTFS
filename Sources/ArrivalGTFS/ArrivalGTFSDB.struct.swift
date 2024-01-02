@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import CryptoKit
+//import CryptoKit
 //import GTFS
 
 public struct GTFSDB: Codable, Hashable {
@@ -119,10 +119,8 @@ public enum RTUpdateError: Error {
     case specifiedTripDoesntExist
     case noStopTimesExist
 }
-public struct TransfersDB: Codable, Hashable, Equatable, Signable {
-    public func signature() -> String {
-        return getSignature(data: self.all)
-    }
+public struct TransfersDB: Codable, Hashable, Equatable {
+   
     
     public let all: [Transfer]
     private let byStopIDIndex: [String: [Int]]
@@ -146,10 +144,8 @@ public struct TransfersDB: Codable, Hashable, Equatable, Signable {
         })
     }
 }
-public struct GTFSCalendarDB: Codable, Hashable, Equatable, Signable {
-    public func signature() -> String {
-        return getSignature(data: self.all)
-    }
+public struct GTFSCalendarDB: Codable, Hashable, Equatable {
+   
     
     public let all: [GTFSCalendar]
     private let byServiceIDIndex: [String: Int]
@@ -170,10 +166,8 @@ public struct GTFSCalendarDB: Codable, Hashable, Equatable, Signable {
         return all[index]
     }
 }
-public struct StationsDB: Codable, Hashable, Equatable, Signable {
-    public func signature() -> String {
-        return getSignature(data: self.all)
-    }
+public struct StationsDB: Codable, Hashable, Equatable {
+    
     public let all: [Stop]
     private let byStopIDIndex: [String: Int]
     public var ready: DBReady = .ready
@@ -200,10 +194,8 @@ public struct StationsDB: Codable, Hashable, Equatable, Signable {
     }
 }
 
-public struct StopTimesDB: Codable, Hashable, Equatable, Signable {
-    public func signature() -> String {
-        return getSignature(data: self.all)
-    }
+public struct StopTimesDB: Codable, Hashable, Equatable {
+  
     public var all: [StopTime]
     
     public var ready: DBReady = .notReady
@@ -331,10 +323,8 @@ public struct StopTimesDB: Codable, Hashable, Equatable, Signable {
     }
 }
 
-public struct TripsDB: Codable, Hashable, Equatable, Signable {
-    public func signature() -> String {
-        return getSignature(data: self.all)
-    }
+public struct TripsDB: Codable, Hashable, Equatable {
+  
     public var all: [Trip]
     
     private var byTripIDIndex: [String: Int]
@@ -447,10 +437,8 @@ public struct TripsDB: Codable, Hashable, Equatable, Signable {
     
 }
 
-public struct RoutesDB: Codable, Hashable, Equatable, Signable{
-    public func signature() -> String {
-        return getSignature(data: self.all)
-    }
+public struct RoutesDB: Codable, Hashable, Equatable{
+  
    
     
     public var all: [Route]
@@ -518,7 +506,7 @@ public protocol Signable: Codable {
     
     func signature() -> String
 }
-
+/*
 func getSignature(data: Codable) -> String {
    guard let data = try? JSONEncoder().encode(data) else  {
    return ""
@@ -526,7 +514,7 @@ func getSignature(data: Codable) -> String {
     return String(Insecure.MD5.hash(data: data).hashValue)
    // return sha256(str: data.base64EncodedString())
        
-}
+}*/
 /*
 func sha256(str: String) -> String {
  

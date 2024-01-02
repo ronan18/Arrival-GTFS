@@ -40,12 +40,7 @@ class Arrival_GTFSTests: XCTestCase {
           
       
     }
-    func testHashing() {
-print(self.agtfs.db.stations.signature())
-print(self.agtfs.db.stations.signature())
-print(self.agtfs.db.stations.signature())
-        
-    }
+  
     func testArrivalsForStop() throws {
         let date = Date()
         self.agtfs.db.stations.all.forEach({
