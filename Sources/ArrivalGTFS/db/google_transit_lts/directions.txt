@@ -11,5 +11,3 @@ route_id,direction_id,direction
 6,0,North
 7,1,South
 8,0,North
-BB-A,0,North
-BB-B,1,South

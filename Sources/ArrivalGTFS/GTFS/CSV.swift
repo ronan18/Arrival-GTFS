@@ -105,7 +105,10 @@ public struct CSVLine {
         guard let index = keys.firstIndex(of: key) else {
             return nil
         }
-
+            //print(index, values, key)
+        guard values.count > index else {
+        return nil
+        }
         return values[index]
     }
 }

@@ -56,9 +56,9 @@ public struct Agency: Codable, FromCSVLine, Equatable, Hashable {
 
     public init(line: CSVLine) {
         agencyId = line["agency_id"]
-        agencyName = line["agency_name"]!
-        agencyUrl = line["agency_url"]!
-        agencyTimezone = line["agency_timezone"]!
+        agencyName = line["agency_name"] ?? "BART - default"
+        agencyUrl = line["agency_url"] ?? "BART - default"
+        agencyTimezone = line["agency_timezone"] ?? "BART - default"
         agencyLang = line["agency_lang"]
         agencyPhone = line["agency_phone"]
         agencyFareUrl = line["agency_fare_url"]
@@ -84,6 +84,7 @@ public struct Stop: Identifiable, Codable, FromCSVLine, Equatable, Hashable {
     public let platformCode: String?
 
     public init(line: CSVLine) {
+      //  print(line)
         stopId = line["stop_id"]!
         stopCode = line["stop_code"]
         stopName = line["stop_name"] ?? line["stop_id"]!
@@ -563,7 +564,7 @@ public struct Transfer: Codable, FromCSVLine, Equatable, Hashable {
         fromRouteID = line["from_route_id"] ?? ""
         toRouteID = line["to_route_id"] ?? ""
         topStopId = line["top_stop_id"] ?? "nan"
-        transferType = TransferType.from(line["transfer_type"]!)
+        transferType = TransferType.from(line["transfer_type"] ?? "BART - default")
         minTransferTime = Int.from(line["min_transfer_time"])
     }
 }
