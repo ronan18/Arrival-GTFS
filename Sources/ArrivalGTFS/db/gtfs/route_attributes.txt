@@ -11,5 +11,3 @@ route_id,category,subcategory,running_way
 12,2,201,1
 19,3,301,1
 20,3,301,1
-2,2,201,1
-1,2,201,1

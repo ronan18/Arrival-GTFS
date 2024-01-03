@@ -11,5 +11,3 @@ route_id,realtime_enabled,realtime_routename,realtime_routecode
 6,0,,
 7,0,,
 8,0,,
-BB-A,0,,
-BB-B,0,,
