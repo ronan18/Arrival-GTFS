@@ -6,18 +6,18 @@ public class ArrivalGTFSCore {
     private let gftsURL = URL(string: "https://www.bart.gov/dev/schedules/google_transit.zip")!
     private let gtfsrtURL = URL(string: "http://api.bart.gov/gtfsrt/tripupdate.aspx")!
     private let cachePath = URL(fileURLWithPath: "/Users/ronanfuruta/Desktop/Dev/RonanFuruta/ios/Arrival/Arrival-GTFS/Sources/ArrivalGTFS/db/google_transit_lts.json")
-   // private let dbCachePath = Bundle.module.url(forResource: "db", withExtension: "json")!
+    // private let dbCachePath = Bundle.module.url(forResource: "db", withExtension: "json")!
     private var lastGTFSRTHash: Int? = nil
     public var db: GTFSDB
-  
+    
     public var defaultResultLength: Int = 15
     
     public init() {
-       
-    //    let data = try! Data(contentsOf: dbCachePath)
-      //  self.db = try! JSONDecoder().decode(GTFSDB.self, from: data)
+        
+        //    let data = try! Data(contentsOf: dbCachePath)
+        //  self.db = try! JSONDecoder().decode(GTFSDB.self, from: data)
         self.db = GTFSDB(from: GTFS())
-      
+        
     }
     
     public func readPrebuilt() throws {
@@ -62,7 +62,7 @@ public class ArrivalGTFSCore {
             end = "0" + end
         }
         var stopTimes = self.db.stopTimes.byDepartureHour(from:self.hour(for: at), to: end)
-       print("got \(stopTimes.count) stops at \(stop.stopName), ", self.hour(for: at), end)
+        print("got \(stopTimes.count) stops at \(stop.stopName), ", self.hour(for: at), end)
         stopTimes = stopTimes.filter({stopTime in
             return self.inSerivce(stopTime: stopTime, at: at) && stopTime.stopId == stop.stopId
         })
@@ -77,14 +77,14 @@ public class ArrivalGTFSCore {
             print("no first index greater than time, ", at, at.bayTime, stopTimesSorted.first, stopTimesSorted.last)
             return []
         }
-       
+        
         var lastIndex = firstIndex + defaultResultLength
         if lastIndex > stopTimesSorted.count - 1 {
             lastIndex = stopTimesSorted.count - 1
         }
         print("first index \(firstIndex) \(stopTimesSorted.count)", lastIndex)
         let selectedStopTimes = stopTimesSorted[firstIndex..<lastIndex]
-       print("found \(selectedStopTimes.count) stops")
+        print("found \(selectedStopTimes.count) stops")
         return Array(selectedStopTimes)
         
     }
@@ -93,7 +93,7 @@ public class ArrivalGTFSCore {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HH"
         dateFormatter.timeZone = .init(abbreviation: "PST")
-       // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
+        // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
         var hour = dateFormatter.string(from: date)
         if (hour.count == 1) {
             hour = "0"+hour
@@ -101,7 +101,7 @@ public class ArrivalGTFSCore {
         print("hour for from dateformatter",date, date.bayTime, hour)
         return hour
     }
-
+    
     func inSerivce(stopTime: StopTime, at: Date) -> Bool {
         guard let service = self.db.calendar.byServiceID(self.db.trips.byTripID(stopTime.tripId)?.serviceId ?? "ERROR") else {
             print("ERROR COULD NOT FIND SERVICE", stopTime.tripId, self.db.trips.byTripID(stopTime.tripId))
@@ -170,155 +170,174 @@ public class ArrivalGTFSCore {
         
     }
     public func path(from: Stop, to: Stop, at: Date = Date(), stopTimes: [StopTime]) async -> [Connection] {
+        //set up a varible to store the resulting route
         var route: [Connection] = []
+        //set up a dictionary to store the earliest possible arrival for each station
         var arrivalTimestamp: [String: Date] = [:]
+        
+        //the working route by station id
         var inConnection: [String: Connection?] = [:]
+        //pre propulate initial varibles with seed data
+        //arrivalTimestamp is set to a time infinite from now -meaning any possible way is acceptable
+        //inConnection is set to nil for each station -meaning all connections to stations are reset
         self.db.stations.all.forEach({station in
             arrivalTimestamp[station.id] = Date(timeIntervalSinceNow: 1e10)
             inConnection[station.id] = nil
         })
+        //Set the time that you are at the inital station
         arrivalTimestamp[from.stopId] = at
+        
+        //debugging varibles
         var sameStation: [String] = []
         var noPrevious: [StopTime] = []
-       /* let first = stopTimes.firstIndex(where: {time in
-            Date(bartTime: time.departureTime) > at
-        }) ?? 0*/
         
+        //for every single train arrival at any station itterate.
         for i in 0..<stopTimes.count{
+            //current stoptime to proccess
             let current = stopTimes[i]
+            
+            //not a part of CSA helps to weed out bad data.
             guard current.stopSequence >= 1 else {
                 continue
             }
-                guard let previous = self.db.stopTimes.byTripID(current.tripId)!.last(where: {time in
-                    time.stopSequence <= current.stopSequence - 1
-                }) else {
-                  //  print("No previous", current.stopSequence)
-                    noPrevious.append(current)
-                    continue
-                }
+            
+            //GENERATE A CONNECTION (building block of CSA
+            guard let previous = self.db.stopTimes.byTripID(current.tripId)!.last(where: {time in
+                time.stopSequence <= current.stopSequence - 1
+            }) else {
+                //  print("No previous", current.stopSequence)
+                noPrevious.append(current)
+                continue
+            }
             let connection = Connection(start: previous, end: current, tripId:current.tripId, routeId: self.db.trips.byTripID(current.tripId)!.routeId)
-                if (connection.startStation == connection.endStation) {
-                  //  print("ERROR", connection.description, current.stopSequence, previous.stopSequence)
-                    sameStation.append("\(connection.description), \(current.stopSequence), \(previous.stopSequence)")
-                   
-                }
-        
-            //if the connection happens before the query time or the connection returns to the initial station
-                if connection.startTime < at || connection.endStation == from.stopId {
-                   
-                    continue
-                }
-            //connection comes after already arriving at the destitnation station
-                if let final = inConnection[to.stopId], connection.startTime > final!.endTime {
-                  //  print("connection comes after already arriving at the destitnation station")
-                 
-                    break
-                }
+            //END CONNECTION GENERATION
+            
+            //Weed out bad data
+            if (connection.startStation == connection.endStation) {
+                //  print("ERROR", connection.description, current.stopSequence, previous.stopSequence)
+                sameStation.append("\(connection.description), \(current.stopSequence), \(previous.stopSequence)")
+                
+            }
+            
+            //if the connection happens before the query time or the connection returns to the initial station ignore it and continue
+            if connection.startTime < at || connection.endStation == from.stopId {
+                
+                continue
+            }
+            //connection comes after already arriving at the destitnation station means we've made our way through all applicable connections. End pathfinding.
+            if let final = inConnection[to.stopId], connection.startTime > final!.endTime {
+                //  print("connection comes after already arriving at the destitnation station")
+                
+                break
+            }
             //arrives at the station after the current best arrives there
-                if let current = inConnection[connection.endStation], connection.endTime > current!.endTime {
-                   
-                    continue
+            if let current = inConnection[connection.endStation], connection.endTime > current!.endTime {
+                
+                continue
+            }
+            
+            if connection.startStation == from.stopId { //if the connection is from the origin station list it as reachable
+                inConnection[connection.endStation] = connection
+            } else if let previous = inConnection[connection.startStation] { //otherwise if the start station is already marked as reachable then check if it is wthin the transferwindow
+                var transferTime: TimeInterval = 60
+                if let transfers = self.db.transfers.byStopID(connection.startStation) {
+                    if let transfer = transfers.first(where: {transfer in
+                        return transfer.toRouteID == connection.routeId && transfer.fromRouteID == previous!.routeId
+                    }) {
+                        //print("TRANSFER FOUND \(connection.startStation) from \(previous!.routeID) to \(connection.routeID)", transfer.minTransferTime)
+                        transferTime = Double(transfer.minTransferTime ?? 20 )
+                    } else {
+                        if let transfer = transfers.first(where: {transfer in
+                            return transfer.toRouteID == "" && transfer.fromRouteID == ""
+                        }) {
+                            //  print("DEFAULT TRANSFER FOUND \(connection.startStation)", transfer.minTransferTime)
+                            transferTime = Double(transfer.minTransferTime ?? 20 )
+                        }
+                    }
                 }
-                if connection.startStation == from.stopId {
+                
+                //if you're already on the train or the train your on arrives + a buffer before the next connection leaves
+                if connection.startTime > previous!.endTime + transferTime + 60 || connection.tripId == previous!.tripId {
                     inConnection[connection.endStation] = connection
-                } else if let previous = inConnection[connection.startStation] {
-                    var transferTime: TimeInterval = 60
-                    if let transfers = self.db.transfers.byStopID(connection.startStation) {
-                       if let transfer = transfers.first(where: {transfer in
-                           return transfer.toRouteID == connection.routeId && transfer.fromRouteID == previous!.routeId
-                       }) {
-                           //print("TRANSFER FOUND \(connection.startStation) from \(previous!.routeID) to \(connection.routeID)", transfer.minTransferTime)
-                           transferTime = Double(transfer.minTransferTime ?? 20 )
-                       } else {
-                           if let transfer = transfers.first(where: {transfer in
-                                return transfer.toRouteID == "" && transfer.fromRouteID == ""
-                           }) {
-                             //  print("DEFAULT TRANSFER FOUND \(connection.startStation)", transfer.minTransferTime)
-                               transferTime = Double(transfer.minTransferTime ?? 20 )
-                           }
-                       }
-                    }
                     
-                    //if you're already on the train or the train your on arrives + a buffer before the next connection leaves
-                    if connection.startTime > previous!.endTime + transferTime + 60 || connection.tripId == previous!.tripId {
-                        inConnection[connection.endStation] = connection
-                       
-                    }
                 }
-             
+            }
+            
             
         }
-    
+        
+        //not a part of CSA but converts the working connections into a easier data format for my app to read and display
+        //goes in reverse from end station to the start station following the quickest arrival times.
         var currentStation = to.stopId
         var i = 0
         while let connection = inConnection[currentStation] {
             route.insert(connection!, at: 0)
             currentStation = connection!.startStation
             if (currentStation == from.stopId || i > inConnection.keys.count) {
-               // print("done found route", i)
+                // print("done found route", i)
                 break
             }
             i += 1
         }
         return route
-
+        
     }
     public func findPaths(from: Stop, to: Stop, at: Date = Date(), count: Int = 5) async -> [[Connection]] {
         var at = at
         var results: [[Connection]] = []
         var i = 0
-       let time = Date()
+        let time = Date()
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "hh"
         dateFormatter.timeZone = .init(identifier: "PST")
-       // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
+        // let hour = Calendar.current.dateComponents([.hour], from: at).hour ?? 0
         let hour = dateFormatter.string(from: at)
-       // print(at.bayTime, hour)
+        // print(at.bayTime, hour)
         var workingStopTimes: [StopTime] = []
         let indexTime = ContinuousClock().measure {
-        workingStopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + String(3)))
-        print("initial count", workingStopTimes.count)
-      
-       /*    let first = workingStopTimes.firstIndex(where: {stopTime in
-               Date(bartTime: stopTime.departureTime) > at
-           }) ?? 0
-           let last = workingStopTimes.lastIndex(where: {stopTime in
-               Date(bartTime: stopTime.departureTime) > at + 60*60*3
-           }) ?? 0
-           //print("first index", first, "last index", last)
-           workingStopTimes = Array(workingStopTimes.dropLast(workingStopTimes.count - last))
-           workingStopTimes = Array(workingStopTimes.dropFirst(first - 0)) */
-          
+            workingStopTimes = self.db.stopTimes.byDepartureHour(from:String(hour) , to: String(hour + String(3)))
+            print("initial count", workingStopTimes.count)
+            
+            /*    let first = workingStopTimes.firstIndex(where: {stopTime in
+             Date(bartTime: stopTime.departureTime) > at
+             }) ?? 0
+             let last = workingStopTimes.lastIndex(where: {stopTime in
+             Date(bartTime: stopTime.departureTime) > at + 60*60*3
+             }) ?? 0
+             //print("first index", first, "last index", last)
+             workingStopTimes = Array(workingStopTimes.dropLast(workingStopTimes.count - last))
+             workingStopTimes = Array(workingStopTimes.dropFirst(first - 0)) */
+            
             workingStopTimes = workingStopTimes.filter({stopTime in
                 
                 self.inSerivce(stopTime: stopTime, at: at)
             })
         }
-       print("initial pruning time", indexTime)
+        print("initial pruning time", indexTime)
         print("working stoptimes count", workingStopTimes.count)
         var byArrivalTimeRes: [TimeInterval: [Connection]] = [:]
         while (byArrivalTimeRes.values.count < count && Date().timeIntervalSince(time) < 5) {
-           // let time = await ContinuousClock().measure {
-                let first = workingStopTimes.firstIndex(where: {time in
-                    Date(bartTime: time.departureTime) > at
-                }) ?? 0
-                workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
-                //print("working stoptimes count", workingStopTimes.count, first)
-                let res = await path(from: from, to: to, at: at, stopTimes: workingStopTimes)
+            // let time = await ContinuousClock().measure {
+            let first = workingStopTimes.firstIndex(where: {time in
+                Date(bartTime: time.departureTime) > at
+            }) ?? 0
+            workingStopTimes = Array(workingStopTimes.dropFirst(first - 0))
+            //print("working stoptimes count", workingStopTimes.count, first)
+            let res = await path(from: from, to: to, at: at, stopTimes: workingStopTimes)
             if let last = res.last {
                 byArrivalTimeRes[last.endTime.timeIntervalSince1970] = res
                 results.append(res)
             }
-                if let first = res.first?.startTime {
-                    at = Date(timeInterval: 30, since: first)
-                } else {
-                    i = count
-                }
-                
-                i += 1
-           // }
-           // print("PATH SEARCH TIME", time)
+            if let first = res.first?.startTime {
+                at = Date(timeInterval: 30, since: first)
+            } else {
+                i = count
+            }
+            
+            i += 1
+            // }
+            // print("PATH SEARCH TIME", time)
             
             
         }
